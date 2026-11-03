@@ -14,7 +14,7 @@
 | 6 | `outcome` 與 `conclusion`；`if` 內的 context | D1-O2 | 已跑（2026-11-03） |
 | 7 | 快取的分支隔離與 `restore-keys` 順序 | D1-O3 | 已跑（2026-11-03） |
 | 8 | 成品：同名上傳、跨執行下載、REST 302 網址 | D1-O3、D2-O2 | 已跑（2026-11-03） |
-| 9 | 重新執行與除錯記錄 | D2-O1 | 待寫 |
+| 9 | 重新執行與除錯記錄 | D2-O1 | 已跑（2026-11-03） |
 | 10 | 可重用工作流程與複合 action | D2-O3、D3-O1 | 待寫 |
 | 11 | 三種自訂 action | D3-O1、D3-O2 | 待寫 |
 | 12 | script injection 與環境變數防範 | D5-O1 | 待寫 |
@@ -131,6 +131,20 @@ b'` 才能傳多行；擷取日誌時要避開 workflow 原始碼裡那行 `echo
 **驗證方式：** 貼上各步驟輸出。
 **踩到的坑：** `with_token=false` 時我傳空字串給 `github-token`，實際上動作改用預設的 `github.token`，所以沒有測到「完全沒有 token」；這一項不能下結論。
 
-## 實驗 9 到 14
+## 實驗 9：重新執行與除錯記錄
+
+**學習站的說法：** 重跑沿用原本的 `GITHUB_SHA` 與 `GITHUB_REF`；只重跑失敗的 job 時，封存檔只含重跑的 job；重新執行時勾選 Enable debug logging（CLI `--debug`）會啟用 runner 診斷與步驟除錯；`ACTIONS_STEP_DEBUG` 同時是 secret 與 variable 時 secret 優先。
+
+**步驟：**
+1. `.github/workflows/lab09-rerun.yml` 已在 `main`：`check` job 在第 1 次嘗試故意失敗並印出 `RESULT9`（含 `GITHUB_SHA`、checkout 後的 HEAD、遠端 main 的 HEAD、`run_attempt`），`ok` job 永遠成功。手動執行一次。
+2. 在 `main` 推一個新 commit，然後 `gh run rerun <id> --failed`（第 2 次嘗試）。
+3. `gh run rerun <id> --debug`（第 3 次嘗試，全部 job）。用 `GET /repos/<擁有者>/<repo>/actions/runs/<id>/attempts/<n>/logs` 下載各次嘗試的封存檔，列出檔名並數 `##[debug]` 行。
+4. 新增 repository variable `ACTIONS_STEP_DEBUG=true` 後重跑；再新增同名 secret（值 `false`）重跑；再刪除 variable 重跑。最後刪除 secret 與 variable。
+
+**預期：** 第 2 次嘗試的 `GITHUB_SHA` 仍是第 1 次的；第 2 次封存檔只含 `check`；第 3 次出現 `##[debug]` 行與 `runner-diagnostic-logs`；variable 為 true 時有除錯行，secret 為 false 時沒有。
+**驗證方式：** 貼上各次嘗試的 `RESULT9`、封存檔檔名與除錯行數。
+**踩到的坑：** Windows 上的 python 讀不到 git bash 的 `/tmp` 路徑，檔案要放在 Windows 路徑下。
+
+## 實驗 10 到 14
 
 尚未撰寫；規劃見總表。每個實驗寫完前先確認它能解決學習站章節裡哪個「尚未核對」的項目，再動手。

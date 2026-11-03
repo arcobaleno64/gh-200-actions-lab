@@ -39,3 +39,10 @@
 | 8 | archive_format 只能是 zip | tar 失敗 | 2026-11-03：`.../<id>/tar` 回 404 | 一致 |
 | 8 | 成品物件有 expires_at；retention-days 可縮短 | 約 1 天後 | 2026-11-03：`retention-days: 1`，建立 `2026-11-03T07:43:11Z`，`expires_at=2026-11-04T07:43:10Z`，`expired=false` | 一致 |
 | 8 | 刪除執行會連同成品一起刪除 | 成品消失 | 2026-11-03：刪除 run 41598226131（回 204）後該 run 的成品不再出現在列表，其他兩次執行的成品還在 | 一致 |
+| 9 | 重跑沿用原本的 GITHUB_SHA 與 GITHUB_REF | 第 2 次嘗試的 SHA 等於第 1 次 | 2026-11-03：第 1 次 `0941e519…`；推新 commit 後 main 為 `cc190e5e…`；`--failed` 重跑（run_attempt=2）的 `GITHUB_SHA` 與 checkout 後的 HEAD 仍是 `0941e519…`，遠端 main 已是 `cc190e5e…` | 一致 |
+| 9 | 只重跑失敗的 job | 成功的 job 不重跑 | 2026-11-03：`--failed` 後 `ok` job 的日誌仍是 `attempt=[1]`（沿用第 1 次的結果，沒有重新執行）；`check` 重跑成功 | 一致 |
+| 9 | 只重跑失敗 job 時，封存檔只含重跑的 job | 只有 check | 2026-11-03：第 2 次嘗試的 logs 封存檔只有 `0_check.txt` 與 `check/` 的檔案，沒有 `ok` | 一致 |
+| 9 | 每次重跑 run_attempt 加一，且可讀各次嘗試的 job | 章內未核對 | 2026-11-03：run_attempt 依序為 1、2、3…6；`/runs/<id>/attempts/1/jobs` 仍可讀到第 1 次的 `check=failure` | 確認 |
+| 9 | Enable debug logging（--debug）啟用步驟除錯與 runner 診斷 | 有除錯行與 runner-diagnostic-logs | 2026-11-03：`gh run rerun --debug` 的第 3 次嘗試有 268 行 `##[debug]`（含 `##[debug]lab09 debug message`），封存檔含 `runner-diagnostic-logs/<job id>-check.zip` 與 `-ok.zip`；沒有 `--debug` 的第 2 次嘗試有 0 行 | 一致 |
+| 9 | ACTIONS_STEP_DEBUG 設成 variable 為 true 時啟用 | 有除錯行 | 2026-11-03：只有 variable=true 時，第 4 次嘗試有 252 行 `##[debug]` | 一致 |
+| 9 | variable 與 secret 同時存在時 secret 優先 | secret=false 時沒有除錯行 | 2026-11-03：variable=true 加 secret=false，第 5 次嘗試 0 行；刪除 variable 後只剩 secret=false，第 6 次嘗試 0 行 | 一致 |
