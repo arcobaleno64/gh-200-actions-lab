@@ -18,7 +18,7 @@
 | 10 | 可重用工作流程與複合 action | D2-O3、D3-O1 | 已跑（2026-11-03） |
 | 11 | 三種自訂 action | D3-O1、D3-O2 | 已跑（2026-11-03） |
 | 12 | script injection 與環境變數防範 | D5-O1 | 已跑（2026-11-03） |
-| 13 | `GITHUB_TOKEN` 權限與觸發規則 | D5-O1 | 待寫 |
+| 13 | `GITHUB_TOKEN` 權限與觸發規則 | D5-O1 | 已跑（2026-11-03） |
 | 14 | OIDC：只檢視 claims，不連雲端 | D5-O1 | 待寫 |
 
 ## 實驗 1：功能分支的 schedule 與 workflow_dispatch
@@ -181,6 +181,19 @@ b'` 才能傳多行；擷取日誌時要避開 workflow 原始碼裡那行 `echo
 **驗證方式：** 貼上每次的 `RESULT12` 行，與日誌中 `Run` 區塊顯示的展開後腳本。
 **踩到的坑：** 我的第一版篩選條件把含 `echo "` 的輸出行也濾掉，看起來像少了結果；要改成逐步驟檢視。
 
-## 實驗 13 到 14
+## 實驗 13：GITHUB_TOKEN 權限與觸發規則
+
+**學習站的說法：** repository 預設的 token 權限為唯讀時，沒寫 `permissions` 的工作流程只有讀取權限；`permissions` 在 job 層級會取代工作流程層級；`permissions: {}` 不給任何權限；`write-all` 給全部。由 `GITHUB_TOKEN` 引發的事件通常不會建立新的工作流程執行，例外是 `workflow_dispatch` 與 `repository_dispatch`。
+
+**重要限制：** 這個 repo 是**公開**的，讀取類的 API（例如 `contents`、`issues`）不論 token 權限都回 200，所以**讀取權限無法在這裡驗證**；只有寫入會被擋。另外 repository 預設權限（`default_workflow_permissions=read`）是設定值，**我沒有更動它**，只讀取。
+
+**步驟：**
+1. `lab13-probe`（composite）與 `lab13-default.yml`、`lab13-perms.yml`：用 job 的 `github.token` 呼叫 REST，印出 HTTP 狀態，其中「寫入」用建立一個標籤再刪除來代表 `issues: write`。五種情況：沒寫 `permissions`、工作流程層級 `contents: read`、job 層級 `issues: write`、`permissions: {}`、`write-all`。
+2. `lab13-target.yml` 監聽 `issues: opened` 與 `workflow_dispatch`；`lab13-trigger.yml` 用 `GITHUB_TOKEN` 開一個 issue，再用同一個 token 呼叫 dispatch API；最後由使用者帳號開一個 issue 當對照。做完關閉三個 issue。
+
+**預期：** 沒寫 `permissions` 與工作流程層級 `contents: read` 寫入被擋；job 層級 `issues: write` 與 `write-all` 寫入成功；`{}` 寫入被擋；`GITHUB_TOKEN` 開 issue 不觸發 target，dispatch 會；使用者開的 issue 會觸發。
+**驗證方式：** 貼上各 job 的 `RESULT13` 行與 target 的執行紀錄。
+
+## 實驗 14
 
 尚未撰寫；規劃見總表。每個實驗寫完前先確認它能解決學習站章節裡哪個「尚未核對」的項目，再動手。

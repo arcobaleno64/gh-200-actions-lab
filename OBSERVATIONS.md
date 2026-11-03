@@ -73,3 +73,12 @@
 | 12 | 經 `process.env` 取值只是字串 | 不執行 | 2026-11-03：步驟 D 輸出 `RESULT12 D greeting=[Hello x'); core.info('INJECTED-JS]`，沒有獨立行 | 一致 |
 | 12 | 含換行的不受信任文字附加到 `GITHUB_ENV` 會多設變數 | `LAB12_INJECTED` 被設定 | 2026-11-03：輸入 `first` 換行 `LAB12_INJECTED=yes`，E2 輸出 `note=[first] injected-var=[yes]`；日誌也列出新增的 `LAB12_INJECTED: yes`。單行輸入時 `injected-var=[unset]` | 一致 |
 | 12 | 同一個 `env` 方式在 shell 與 JavaScript 兩邊都能避免注入 | B、D 都安全 | 2026-11-03：四組輸入下 B、D 皆只輸出字串 | 一致 |
+| 13 | 預設為唯讀時，沒寫 `permissions` 的工作流程不能寫入 | 建立標籤被擋 | 2026-11-03：repository 設定為 `default_workflow_permissions=read`（只讀取）；`lab13-default` 建立標籤回 `403` | 一致 |
+| 13 | 工作流程層級 `contents: read` 時 job 繼承 | 寫入被擋 | 2026-11-03：`inherits-workflow-level` 建立標籤回 `403` | 一致 |
+| 13 | job 層級 `permissions` 取代工作流程層級 | job 可以有不同權限 | 2026-11-03：同一個工作流程（頂層 `contents: read`），`job-level-issues-write` 建立標籤回 `201`，與繼承的 job 的 `403` 不同 | 一致 |
+| 13 | `permissions: {}` 不給任何權限 | 寫入被擋 | 2026-11-03：建立標籤回 `403` | 一致（讀取無法驗證，見下列） |
+| 13 | `permissions: write-all` 給全部權限 | 寫入成功 | 2026-11-03：建立標籤回 `201` | 一致 |
+| 13 | 讀取權限能被 `permissions` 限制 | 讀取被擋 | 2026-11-03：公開 repo 上，`permissions: {}` 的 token 讀 `contents` 回 200，**未認證的請求也回 200** | **無法驗證**（公開 repo 讀取不需要權限；要驗證需用私有 repo） |
+| 13 | 指定單一權限後，其餘權限變為 none | 其餘權限被拿掉 | 2026-11-03：同上，公開 repo 的讀取無法分辨；`issues: write` 單獨設定時 `contents` 與 `actions` 讀取仍回 200 | **無法驗證** |
+| 13 | `GITHUB_TOKEN` 引發的事件不會建立新的執行 | 開 issue 不觸發 | 2026-11-03：`GITHUB_TOKEN`（`actions` 開出的 issue #2）沒有觸發 `lab13-target` 的 `issues: opened`；user 帳號開的 issue #3 觸發了（actor=arcobaleno64） | 一致 |
+| 13 | 例外：`workflow_dispatch` 由 `GITHUB_TOKEN` 觸發仍會建立執行 | 觸發 | 2026-11-03：dispatch API 回 `204`，產生 `workflow_dispatch` 執行，actor=`github-actions[bot]` | 一致 |
