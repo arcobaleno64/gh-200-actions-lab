@@ -23,3 +23,10 @@
 | 6 | steps.if 不能用 secrets | 解析時被拒絕 | 2026-11-03：run 41581868608，`(Line: 11, Col: 13): Unrecognized named-value: 'secrets'` | 一致 |
 | 6 | jobs.<id>.if 不能用 matrix | 解析時被拒絕 | 2026-11-03：run 41581865573，`Unrecognized named-value: 'matrix'` | 一致 |
 | 6 | 把 secret 放進 job 層級 env 再判斷可行 | 未設定的 secret 比較為 false | 2026-11-03：`HAS_TOKEN=[false]`，`if: env.HAS_TOKEN == 'true'` 的步驟 skipped | 一致 |
+| 7 | 分支能還原預設分支的快取 | b1 用 restore-keys `lab07-main-` 命中 | 2026-11-03：在 `lab07/b1` 命中 `lab07-main-1`（`cache-hit=false` 因為是 restore-keys 的部分比對，`content=main`） | 一致 |
+| 7 | 兄弟分支拿不到 | b2 看不到 b1 的快取 | 2026-11-03：b1 存入 `lab07-b1-1` 後，在 `lab07/b2` 用 restore-keys `lab07-b1-` 沒有命中；同時列 `lab07-b1-` 與 `lab07-main-` 時回 `lab07-main-1` | 一致 |
+| 7 | 子分支的快取預設分支拿不到 | main 看不到 b1 的快取 | 2026-11-03：在 `main` 用 restore-keys `lab07-b1-` 沒有命中 | 一致 |
+| 7 | key 的前綴先於 restore-keys | key=`lab07-p`、restore-keys=`lab07-q-` 回 p 系列 | 2026-11-03：命中 `lab07-p-2`，沒有選 `lab07-q-1` | 一致 |
+| 7 | restore-keys 依列出順序 | 先列者優先 | 2026-11-03：列 `q-,p-` 命中 `lab07-q-1`；列 `p-,q-` 命中 `lab07-p-2` | 一致 |
+| 7 | 同一個前綴符合多個時用最近建立的 | p-1 較舊、p-2 較新 → 選 p-2 | 2026-11-03：`lab07-p-` 命中 `lab07-p-2`（p-1 建立於 07:35:25，p-2 於 07:35:43 UTC） | 一致 |
+| 7 | 完全相同的 key 優先於前綴 | key=`lab07-p-1` 命中 p-1 | 2026-11-03：`cache-hit=true`，`matched=lab07-p-1`，`content=p1`（沒有選較新的 p-2） | 一致 |

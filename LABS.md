@@ -12,7 +12,7 @@
 | 4 | 矩陣的 `include`、`exclude`、`fail-fast` | D1-O2 | 已跑（2026-11-03） |
 | 5 | 服務容器：容器內與 runner 上的連線 | D1-O2 | 已跑（2026-11-03） |
 | 6 | `outcome` 與 `conclusion`；`if` 內的 context | D1-O2 | 已跑（2026-11-03） |
-| 7 | 快取的分支隔離與 `restore-keys` 順序 | D1-O3 | 待寫 |
+| 7 | 快取的分支隔離與 `restore-keys` 順序 | D1-O3 | 已跑（2026-11-03） |
 | 8 | 成品：同名上傳、跨執行下載、REST 302 網址 | D1-O3、D2-O2 | 待寫 |
 | 9 | 重新執行與除錯記錄 | D2-O1 | 待寫 |
 | 10 | 可重用工作流程與複合 action | D2-O3、D3-O1 | 待寫 |
@@ -101,6 +101,22 @@
 **驗證方式：** 貼上步驟狀態與三則錯誤訊息。
 **踩到的坑：** 我第一版 `lab06-outcome.yml` 本身就無效：`run: echo "ran: outcome is failure"` 在純量中含 `: `，YAML 解析失敗，頁面只顯示 `You have an error in your yaml syntax on line 26`；改成不含冒號的字串後才通過。
 
-## 實驗 7 到 14
+## 實驗 7：快取的分支隔離與 restore-keys 順序
+
+**學習站的說法：** 一次執行可以還原目前分支與預設分支的快取，子分支與兄弟分支拿不到；查找順序是完全相同的 key、key 的前綴、`restore-keys` 依列出順序，同一個 restore key 符合多個時用最近建立的。
+
+**步驟：**
+1. `.github/workflows/lab07-cache.yml` 已在 `main`：用 `workflow_dispatch` 的輸入決定要還原的 `key`、`restore_keys`，以及（選填）要儲存的 `save_key` 與內容；日誌印出 `RESULT ... cache-hit ... matched ... content`。
+2. 在 `main` 依序存入 `lab07-main-1`、`lab07-p-1`、`lab07-p-2`、`lab07-q-1`（內容分別是 main、p1、p2、q1）。
+3. 建分支 `lab07/b1`、`lab07/b2`；用 `gh workflow run lab07-cache.yml --ref <分支> -f key=... -f restore_keys=...` 在各分支探測，並在 b1 存入 `lab07-b1-1`。
+4. 在 `main` 探測各種 key 與 `restore-keys` 組合。
+5. 做完刪除兩個分支；快取會依保留期自動清掉，也可用 `gh cache delete` 清除。
+
+**預期：** 分支能還原預設分支的快取，看不到兄弟或子分支的；順序如學習站所述。
+**驗證方式：** 貼上每次探測的 `RESULT` 行。
+**踩到的坑：** `-f restore_keys` 要用 bash 的 `$'a
+b'` 才能傳多行；擷取日誌時要避開 workflow 原始碼裡那行 `echo "RESULT ..."`，否則會抓到未展開的變數名稱。
+
+## 實驗 8 到 14
 
 尚未撰寫；規劃見總表。每個實驗寫完前先確認它能解決學習站章節裡哪個「尚未核對」的項目，再動手。
