@@ -6,7 +6,7 @@
 
 | # | 實驗 | 對應目標 | 狀態 |
 | - | ---- | -------- | ---- |
-| 1 | 功能分支的 `schedule` 與 `workflow_dispatch` | D1-O1 | 已寫 |
+| 1 | 功能分支的 `schedule` 與 `workflow_dispatch` | D1-O1 | 已跑（2026-11-03）；排程是否啟動未觀察到 |
 | 2 | 各事件的 `GITHUB_SHA` 與 `GITHUB_REF` | D1-O1 | 已跑（2026-11-03） |
 | 3 | boolean input：`inputs` 與 `github.event.inputs` | D1-O1 | 已跑（2026-11-03） |
 | 4 | 矩陣的 `include`、`exclude`、`fail-fast` | D1-O2 | 已跑（2026-11-03） |
@@ -209,4 +209,4 @@ b'` 才能傳多行；擷取日誌時要避開 workflow 原始碼裡那行 `echo
 
 ## 還沒做的實驗
 
-實驗 1（排程，會持續執行，需要事後清理）尚未執行。
+實驗 1 已跑；步驟 3（功能分支不觸發）與手動觸發的限制已驗證，步驟 4（合併後排程開始）在 35 分鐘內沒有觀察到執行，結論見 `OBSERVATIONS.md`。

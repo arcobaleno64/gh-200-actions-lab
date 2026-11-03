@@ -90,3 +90,7 @@
 | 14 | `job_workflow_ref` 指向實際執行的工作流程檔 | 經可重用工作流程時指向被呼叫的檔案 | 2026-11-03：一般 job 為 `.../lab14-oidc.yml@refs/heads/main`；經可重用工作流程為 `.../lab14-called.yml@refs/heads/main`，同時 `workflow` 與 `workflow_ref` 仍是呼叫端的 `lab14-oidc` | 一致 |
 | 14 | 常用聲明 | `sub`、`repository`、`ref`、`environment`、`job_workflow_ref`、`workflow`、`actor`、`event_name` | 2026-11-03：全部存在；另有 `repository_id`、`repository_owner_id`、`repository_visibility`、`actor_id`、`run_id`、`run_number`、`run_attempt`、`runner_environment`、`job_workflow_sha`、`workflow_sha`、`ref_protected`、`base_ref`、`head_ref`、`check_run_id`、`environment_node_id`、`jti` 與標準欄位（`iat`、`nbf`、`exp`） | 一致（章節未列全） |
 | 14 | 權杖是短期的 | 章內未核對 | 2026-11-03：`exp - iat = 300` 秒（5 分鐘） | 新發現 |
+| 1 | `schedule` 只在預設分支的工作流程檔上觸發（功能分支不會） | 分支上 15 分鐘沒有執行 | 2026-11-03：08:34 UTC 推送到 `lab01-schedule`（cron 每 5 分鐘），到 08:50 UTC 共 16 分鐘，分支上沒有任何執行（`gh run list --branch lab01-schedule` 為 0 筆） | 一致（只觀察 16 分鐘，若有延遲則不能排除） |
+| 1 | 功能分支上的工作流程不會出現在清單，也不能手動觸發 | 看不到、不能觸發 | 2026-11-03：`GET /actions/workflows` 沒有 lab01；`gh workflow run --ref lab01-schedule` 回 `HTTP 404: workflow lab01-schedule.yml not found on the default branch`；直接呼叫 dispatches API 也回 404 | 一致 |
+| 1 | 合併到預設分支後可手動觸發，`GITHUB_SHA` 是預設分支最新 commit | 觸發成功 | 2026-11-03：08:50 UTC 合併後，清單出現 `lab01-schedule active`；手動觸發成功，`sha=2ac9c4bc…`（合併 commit）、`ref=refs/heads/main`、`cron=[]` | 一致 |
+| 1 | 合併後排程開始執行 | 5 分鐘一次，可能延遲 | 2026-11-03：08:50 UTC 合併，到 09:25 UTC 共 35 分鐘，**沒有任何 `schedule` 事件的執行**（只有手動那一次）。原因不明：可能是新排程的延遲或被略過；官方頁面也寫高負載時可能延遲或丟棄 | **未觀察到**（不能據此說排程不會觸發；只能說 35 分鐘內沒有） |
