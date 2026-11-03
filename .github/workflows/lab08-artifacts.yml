@@ -1,0 +1,83 @@
+name: lab08-artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Run id to download the artifact from (cross-run test); empty to skip
+        required: false
+        default: ""
+      with_token:
+        description: Pass github-token to download-artifact in the cross-run test
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create file
+        run: echo "first" > a.txt
+      - name: Upload artifact "build"
+        id: first
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: a.txt
+          retention-days: 1
+      - name: Change file
+        run: echo "second" > a.txt
+      - name: Upload artifact "build" again (same name, same run)
+        id: second
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: a.txt
+      - name: Report
+        env:
+          FIRST_ID: ${{ steps.first.outputs.artifact-id }}
+          FIRST_DIGEST: ${{ steps.first.outputs.artifact-digest }}
+          SECOND_OUTCOME: ${{ steps.second.outcome }}
+          SECOND_CONCLUSION: ${{ steps.second.conclusion }}
+        run: |
+          echo "RESULT8 first-id=[$FIRST_ID] first-digest=[$FIRST_DIGEST] second-outcome=[$SECOND_OUTCOME] second-conclusion=[$SECOND_CONCLUSION]"
+
+  download-same-run:
+    needs: upload
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact "build" from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: out
+      - name: Report
+        run: |
+          echo "RESULT8 same-run content=[$(cat out/a.txt)]"
+
+  download-cross-run:
+    if: inputs.run_id != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact "build" from another run
+        id: dl
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: out
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ inputs.with_token && github.token || '' }}
+      - name: Report
+        env:
+          OUTCOME: ${{ steps.dl.outcome }}
+          WITH_TOKEN: ${{ inputs.with_token }}
+        run: |
+          content=none
+          if [ -f out/a.txt ]; then content=$(cat out/a.txt); fi
+          echo "RESULT8 cross-run with-token=[$WITH_TOKEN] outcome=[$OUTCOME] content=[$content]"
