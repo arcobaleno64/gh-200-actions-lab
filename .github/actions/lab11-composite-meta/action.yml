@@ -15,6 +15,6 @@ runs:
     - id: g
       shell: bash
       run: |
-        keys=$(env | grep '^INPUT_' | cut -d= -f1 | sort | tr '\n' ',')
+        keys=$(env | grep '^INPUT_' | cut -d= -f1 | sort | tr '\n' ',' || true)
         echo "RESULT11 composite input-env-keys=[$keys] input-via-context=[${{ inputs.who-to-greet }}] action-path-set=[$([ -n "$GITHUB_ACTION_PATH" ] && echo yes || echo no)]"
         echo "greeting=Hello ${{ inputs.who-to-greet }}" >> "$GITHUB_OUTPUT"
