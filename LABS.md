@@ -10,7 +10,7 @@
 | 2 | 各事件的 `GITHUB_SHA` 與 `GITHUB_REF` | D1-O1 | 已跑（2026-11-03） |
 | 3 | boolean input：`inputs` 與 `github.event.inputs` | D1-O1 | 已跑（2026-11-03） |
 | 4 | 矩陣的 `include`、`exclude`、`fail-fast` | D1-O2 | 已跑（2026-11-03） |
-| 5 | 服務容器：容器內與 runner 上的連線 | D1-O2 | 待寫 |
+| 5 | 服務容器：容器內與 runner 上的連線 | D1-O2 | 已跑（2026-11-03） |
 | 6 | `outcome` 與 `conclusion`；`if` 內的 context | D1-O2 | 待寫 |
 | 7 | 快取的分支隔離與 `restore-keys` 順序 | D1-O3 | 待寫 |
 | 8 | 成品：同名上傳、跨執行下載、REST 302 網址 | D1-O3、D2-O2 | 待寫 |
@@ -75,6 +75,19 @@
 **預期：** `default-failfast` 的其他組合被取消；`failfast-false` 的其他組合完成；`count` 是 4 個 job。
 **驗證方式：** 把 job 名稱與結果貼進 `OBSERVATIONS.md`。
 
-## 實驗 5 到 14
+## 實驗 5：服務容器的連線
+
+**學習站的說法：** job 在容器內時用服務標籤當主機名稱，不必設定 `ports`；job 直接在 runner 上時用 `localhost` 並要對應 `ports`。**未核對：** `options` 的 `--health-cmd`。
+
+**步驟：**
+1. `.github/workflows/lab05-services.yml` 已在 `main`，在 Actions 手動執行。
+2. 三個 job 各用 bash 的 `/dev/tcp` 對 `localhost:6379` 與 `redis:6379` 送 `PING`（不需要 redis-cli）：`on-runner-ports`（直接在 runner、有 `ports`、帶 `--health-cmd`）、`on-runner-noports`（直接在 runner、沒有 `ports`）、`in-container`（job 在 `ubuntu:22.04` 容器內、沒有 `ports`）。
+3. 看日誌中的 `PROBE` 行，以及 `Initialize containers` 的健康檢查訊息。
+
+**預期：** 只有 `localhost` 與 `ports` 的組合、以及容器內用標籤的組合會回 `+PONG`。
+**驗證方式：** 把六個探測結果貼進 `OBSERVATIONS.md`。
+**踩到的坑：** 探測函式在 `bash -e` 下，失敗的指令替換會讓整個步驟中止，要用 `|| rc=$?` 接住；容器內預設 shell 是 `sh`，要明確指定 `shell: bash` 才有 `/dev/tcp`。
+
+## 實驗 6 到 14
 
 尚未撰寫；規劃見總表。每個實驗寫完前先確認它能解決學習站章節裡哪個「尚未核對」的項目，再動手。

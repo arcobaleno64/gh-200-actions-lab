@@ -12,3 +12,8 @@
 | 4 | fail-fast: false 時其他組合照常完成 | (2)(3)(4) 成功 | 2026-11-03：`failfast-false (1)` 失敗，(2)(3)(4) 都是 success | 一致 |
 | 4 | include 與 exclude 的 job 數 | 4 − 1 + 1 = 4 個 | 2026-11-03：count 共 4 個 job：(macos-latest, 20)、(ubuntu-latest, 16)、(ubuntu-latest, 18)、(windows-latest, 18)；(windows-latest, 16) 不存在 | 一致 |
 | 4 | 矩陣 job 的顯示名稱（章內未核對） | `job-id (值, 值)` | 2026-11-03：單一變數是 `default-failfast (1)`；兩個變數是 `count (ubuntu-latest, 18)`，include 新增的組合也同格式 | 確認 |
+| 5 | job 直接在 runner 上、有 ports 時用 localhost 連服務 | localhost:6379 回 +PONG | 2026-11-03：`on-runner-ports` 的 localhost:6379 回 `+PONG` | 一致 |
+| 5 | 同上，用服務標籤 redis 連 | 解析不到 | 2026-11-03：`redis:6379` 回 `Temporary failure in name resolution` | 一致 |
+| 5 | job 直接在 runner 上、沒有 ports | localhost 連不上 | 2026-11-03：`on-runner-noports` 的 localhost:6379 回 `Connection refused`，redis 解析不到 | 一致 |
+| 5 | job 在容器內時用服務標籤連 | redis:6379 回 +PONG，localhost 連不上 | 2026-11-03：`in-container` 的 redis:6379 回 `+PONG`，localhost:6379 回 `Connection refused` | 一致 |
+| 5 | services 的 options 帶 --health-cmd（章內未核對） | 被接受 | 2026-11-03：job 日誌出現 `(health: starting)` 後變 `healthy`，再執行步驟 | 確認 |
