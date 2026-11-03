@@ -1,0 +1,19 @@
+name: lab13-target
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report
+        env:
+          EVENT: ${{ github.event_name }}
+          ACTOR: ${{ github.actor }}
+          TITLE_ID: ${{ github.event.issue.number }}
+        run: echo "RESULT13 target-ran event=[$EVENT] actor=[$ACTOR] issue=[$TITLE_ID]"

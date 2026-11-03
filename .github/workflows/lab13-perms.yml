@@ -1,0 +1,59 @@
+name: lab13-perms
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inherits-workflow-level:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/lab13-probe
+        with:
+          token: ${{ github.token }}
+          label: workflow-level-contents-read
+
+  job-level-issues-write:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Probe inline (no checkout is possible without contents)
+        env:
+          TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          code() { curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" "$@"; }
+          c_read=$(code "https://api.github.com/repos/$REPO/contents/README.md")
+          i_read=$(code "https://api.github.com/repos/$REPO/issues?per_page=1")
+          a_read=$(code "https://api.github.com/repos/$REPO/actions/runs?per_page=1")
+          name="lab13-probe-$RUN_ID-$RANDOM"
+          i_write=$(code -X POST -d "{\"name\":\"$name\",\"color\":\"ededed\"}" "https://api.github.com/repos/$REPO/labels")
+          if [ "$i_write" = "201" ]; then code -X DELETE "https://api.github.com/repos/$REPO/labels/$name" >/dev/null; fi
+          echo "RESULT13 job-level-issues-write-only contents-read=[$c_read] issues-read=[$i_read] actions-read=[$a_read] issues-write(create-label)=[$i_write]"
+
+  empty-permissions:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Probe inline
+        env:
+          TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          code() { curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" "$@"; }
+          echo "RESULT13 empty-permissions contents-read=[$(code "https://api.github.com/repos/$REPO/contents/README.md")] issues-read=[$(code "https://api.github.com/repos/$REPO/issues?per_page=1")] actions-read=[$(code "https://api.github.com/repos/$REPO/actions/runs?per_page=1")]"
+
+  write-all:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/lab13-probe
+        with:
+          token: ${{ github.token }}
+          label: write-all

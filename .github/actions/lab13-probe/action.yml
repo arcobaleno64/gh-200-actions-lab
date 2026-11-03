@@ -1,0 +1,27 @@
+name: lab13-probe
+description: Call a few REST endpoints with the job token and print the HTTP status of each
+inputs:
+  token:
+    description: Token to test
+    required: true
+  label:
+    description: Label for the output line
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        TOKEN: ${{ inputs.token }}
+        LABEL: ${{ inputs.label }}
+        REPO: ${{ github.repository }}
+        RUN_ID: ${{ github.run_id }}
+      run: |
+        code() { curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" "$@"; }
+        c_read=$(code "https://api.github.com/repos/$REPO/contents/README.md")
+        i_read=$(code "https://api.github.com/repos/$REPO/issues?per_page=1")
+        a_read=$(code "https://api.github.com/repos/$REPO/actions/runs?per_page=1")
+        name="lab13-probe-$RUN_ID-$RANDOM"
+        i_write=$(code -X POST -d "{\"name\":\"$name\",\"color\":\"ededed\"}" "https://api.github.com/repos/$REPO/labels")
+        if [ "$i_write" = "201" ]; then code -X DELETE "https://api.github.com/repos/$REPO/labels/$name" >/dev/null; fi
+        echo "RESULT13 $LABEL contents-read=[$c_read] issues-read=[$i_read] actions-read=[$a_read] issues-write(create-label)=[$i_write]"

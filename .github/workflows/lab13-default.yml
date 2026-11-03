@@ -1,0 +1,14 @@
+name: lab13-default
+
+on:
+  workflow_dispatch:
+
+jobs:
+  no-permissions-key:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/lab13-probe
+        with:
+          token: ${{ github.token }}
+          label: default-no-permissions-key
