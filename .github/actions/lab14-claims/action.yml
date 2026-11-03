@@ -1,0 +1,48 @@
+name: lab14-claims
+description: Request an OIDC token from GitHub and print its claims (never the raw token)
+inputs:
+  label:
+    description: Label for the output lines
+    required: true
+  audience:
+    description: Optional audience query parameter
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        LABEL: ${{ inputs.label }}
+        AUDIENCE: ${{ inputs.audience }}
+      run: |
+        if [ -z "$ACTIONS_ID_TOKEN_REQUEST_URL" ] || [ -z "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
+          echo "RESULT14 $LABEL request-env-present=[no]"
+          exit 0
+        fi
+        url="$ACTIONS_ID_TOKEN_REQUEST_URL"
+        if [ -n "$AUDIENCE" ]; then url="$url&audience=$AUDIENCE"; fi
+        body=$(curl -s -w '\n%{http_code}' -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" -H "Accept: application/json; api-version=2.0" "$url")
+        status=$(echo "$body" | tail -n1)
+        json=$(echo "$body" | sed '$d')
+        token=$(echo "$json" | python3 -c "import sys,json;print(json.load(sys.stdin).get('value',''))" 2>/dev/null || true)
+        if [ -z "$token" ]; then
+          echo "RESULT14 $LABEL request-env-present=[yes] http=[$status] token=[none]"
+          exit 0
+        fi
+        echo "::add-mask::$token"
+        echo "RESULT14 $LABEL request-env-present=[yes] http=[$status] token-parts=[$(echo "$token" | awk -F. '{print NF}')]"
+        TOKEN="$token" python3 - <<'PY'
+        import os, json, base64
+        t = os.environ["TOKEN"]
+        h, p, _ = t.split(".")
+        def d(x):
+            return json.loads(base64.urlsafe_b64decode(x + "=" * (-len(x) % 4)))
+        hdr, pay = d(h), d(p)
+        label = os.environ.get("LABEL", "")
+        print("RESULT14 %s header alg=[%s] has-kid=[%s]" % (label, hdr.get("alg"), "kid" in hdr))
+        for k in ["iss", "aud", "sub", "repository", "repository_owner", "ref", "ref_type", "sha", "workflow", "workflow_ref", "job_workflow_ref", "event_name", "environment", "runner_environment", "actor", "run_attempt"]:
+            print("RESULT14 %s claim %s=[%s]" % (label, k, pay.get(k, "<absent>")))
+        print("RESULT14 %s claim-names=[%s]" % (label, ",".join(sorted(pay.keys()))))
+        print("RESULT14 %s lifetime-seconds=[%s]" % (label, pay["exp"] - pay["iat"]))
+        PY

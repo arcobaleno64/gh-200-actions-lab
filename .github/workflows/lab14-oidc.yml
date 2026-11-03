@@ -1,0 +1,57 @@
+name: lab14-oidc
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  no-id-token:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/lab14-claims
+        with:
+          label: no-id-token-permission
+
+  default-audience:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/lab14-claims
+        with:
+          label: default-audience
+
+  custom-audience:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/lab14-claims
+        with:
+          label: custom-audience
+          audience: sts.example.invalid
+
+  with-environment:
+    runs-on: ubuntu-latest
+    environment: lab14
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/lab14-claims
+        with:
+          label: with-environment
+
+  through-reusable:
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/lab14-called.yml

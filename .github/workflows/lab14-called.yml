@@ -1,0 +1,17 @@
+name: lab14-called
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  inside:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/lab14-claims
+        with:
+          label: reusable-called
