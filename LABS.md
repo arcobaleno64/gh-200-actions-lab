@@ -15,7 +15,7 @@
 | 7 | 快取的分支隔離與 `restore-keys` 順序 | D1-O3 | 已跑（2026-11-03） |
 | 8 | 成品：同名上傳、跨執行下載、REST 302 網址 | D1-O3、D2-O2 | 已跑（2026-11-03） |
 | 9 | 重新執行與除錯記錄 | D2-O1 | 已跑（2026-11-03） |
-| 10 | 可重用工作流程與複合 action | D2-O3、D3-O1 | 待寫 |
+| 10 | 可重用工作流程與複合 action | D2-O3、D3-O1 | 已跑（2026-11-03） |
 | 11 | 三種自訂 action | D3-O1、D3-O2 | 待寫 |
 | 12 | script injection 與環境變數防範 | D5-O1 | 待寫 |
 | 13 | `GITHUB_TOKEN` 權限與觸發規則 | D5-O1 | 待寫 |
@@ -145,6 +145,18 @@ b'` 才能傳多行；擷取日誌時要避開 workflow 原始碼裡那行 `echo
 **驗證方式：** 貼上各次嘗試的 `RESULT9`、封存檔檔名與除錯行數。
 **踩到的坑：** Windows 上的 python 讀不到 git bash 的 `/tmp` 路徑，檔案要放在 Windows 路徑下。
 
-## 實驗 10 到 14
+## 實驗 10：可重用工作流程與複合 action
+
+**學習站的說法：** 呼叫端用 `uses` 加 `with`、`secrets`（或 `secrets: inherit`）；被呼叫端的 secret 必須在 `workflow_call.secrets` 宣告才能由呼叫端明確傳入；輸出要在 `workflow_call.outputs` 對應 job 輸出；呼叫端 job 不能同時有 `steps`、`runs-on`；複合 action 不能直接讀 `secrets` 內容，只能透過 input 傳入。
+
+**步驟：**
+1. `.github/workflows/lab10-called.yml`（`workflow_call`，輸入 `greeting`，選填 secret `token`，輸出 `result`）、`lab10-caller.yml`（三種呼叫：明確傳 `token`、不傳 secret、`secrets: inherit`，另有 job 讀被呼叫端的輸出）、`.github/actions/lab10-composite` 與 `lab10-composite-direct` 已在 `main`。先在 repo 設 secret `LAB10_REPO_SECRET`（實驗後刪除），手動執行 `lab10-caller`。
+2. 在分支 `lab10/invalid` 推四個故意無效的呼叫端檔案：`steps`、`environment`、`uses` 內含運算式、`runs-on` 與 `uses` 並存，看解析錯誤。實驗後刪除分支。
+
+**預期：** 明確傳入才有 token；未宣告的 secret 在被呼叫端讀不到，除非 `secrets: inherit`；輸出可傳回；複合 action 直接讀 `secrets` 會失敗；四個無效檔案都在解析時被拒絕。
+**驗證方式：** 貼上每個 job 的 `RESULT10` 行與四個無效檔案的註解訊息。
+**踩到的坑：** 用 bash 的 here-doc 一次寫多個含引號的 YAML 容易因為引號配對失敗而整段不執行，改用 Write 工具逐檔寫入。
+
+## 實驗 11 到 14
 
 尚未撰寫；規劃見總表。每個實驗寫完前先確認它能解決學習站章節裡哪個「尚未核對」的項目，再動手。

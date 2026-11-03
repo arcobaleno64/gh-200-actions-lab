@@ -46,3 +46,13 @@
 | 9 | Enable debug logging（--debug）啟用步驟除錯與 runner 診斷 | 有除錯行與 runner-diagnostic-logs | 2026-11-03：`gh run rerun --debug` 的第 3 次嘗試有 268 行 `##[debug]`（含 `##[debug]lab09 debug message`），封存檔含 `runner-diagnostic-logs/<job id>-check.zip` 與 `-ok.zip`；沒有 `--debug` 的第 2 次嘗試有 0 行 | 一致 |
 | 9 | ACTIONS_STEP_DEBUG 設成 variable 為 true 時啟用 | 有除錯行 | 2026-11-03：只有 variable=true 時，第 4 次嘗試有 252 行 `##[debug]` | 一致 |
 | 9 | variable 與 secret 同時存在時 secret 優先 | secret=false 時沒有除錯行 | 2026-11-03：variable=true 加 secret=false，第 5 次嘗試 0 行；刪除 variable 後只剩 secret=false，第 6 次嘗試 0 行 | 一致 |
+| 10 | 呼叫端明確傳入 secret 後，被呼叫端才讀得到 | explicit 有 token | 2026-11-03：`call-explicit` 的 `has-token-input=[true]`；`call-none`（不傳）為 `false` | 一致 |
+| 10 | 被呼叫端不能直接讀呼叫端 repo 的 secret，除非 `secrets: inherit` | none/explicit 讀不到，inherit 讀得到 | 2026-11-03：被呼叫端直接讀 `secrets.LAB10_REPO_SECRET`：`call-none`=false、`call-explicit`=false、`call-inherit`=true（`inherit` 時宣告的 `token` 輸入仍是 false，因為沒有同名 secret） | 一致 |
+| 10 | 被呼叫端的 `workflow_call.outputs` 可傳回呼叫端 | 讀到 explicit-done | 2026-11-03：`needs.call-explicit.outputs.result` 為 `explicit-done` | 一致 |
+| 10 | 被呼叫端的 `github` context 是呼叫端的 | event、workflow 屬於呼叫端 | 2026-11-03：`event=workflow_dispatch`、`workflow=lab10-caller`，`GITHUB_SHA` 與呼叫端相同 | 一致 |
+| 10 | 複合 action 透過 input 接收 secret | 成功，輸出可讀 | 2026-11-03：`has-token-input=[true]`，`steps.c.outputs.result=composite-done`；`GITHUB_JOB` 為呼叫它的 job（`composite`） | 一致 |
+| 10 | 複合 action 不能直接讀 `secrets` | 失敗 | 2026-11-03：`##[error]... action.yml (Line: 8, Col: 21): Unrecognized named-value: 'secrets'`；`Failed to load .../action.yml`；步驟因 `continue-on-error` 顯示 conclusion=success，`outcome=failure` | 一致 |
+| 10 | 呼叫端 job 不能有 `steps` | 解析時被拒絕 | 2026-11-03：`Invalid workflow file ... (Line: 11, Col: 5): Unexpected value 'steps'` | 一致 |
+| 10 | 呼叫端 job 不能有 `environment` | 解析時被拒絕 | 2026-11-03：`(Line: 11, Col: 5): Unexpected value 'environment'` | 一致 |
+| 10 | `uses` 不能使用運算式 | 解析時被拒絕 | 2026-11-03：`(Line: 8, Col: 11): A template expression is not allowed in this context` | 一致 |
+| 10 | 呼叫端 job 不能與 `runs-on` 並存 | 解析時被拒絕 | 2026-11-03：有 `runs-on` 時該 job 被當成一般 job 解析，錯誤是 `Unexpected value 'uses'`、`Unexpected value 'with'`（不是指 `runs-on` 本身） | 一致（錯誤訊息指向 `uses`／`with`） |
