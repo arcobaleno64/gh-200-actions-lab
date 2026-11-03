@@ -82,3 +82,11 @@
 | 13 | 指定單一權限後，其餘權限變為 none | 其餘權限被拿掉 | 2026-11-03：同上，公開 repo 的讀取無法分辨；`issues: write` 單獨設定時 `contents` 與 `actions` 讀取仍回 200 | **無法驗證** |
 | 13 | `GITHUB_TOKEN` 引發的事件不會建立新的執行 | 開 issue 不觸發 | 2026-11-03：`GITHUB_TOKEN`（`actions` 開出的 issue #2）沒有觸發 `lab13-target` 的 `issues: opened`；user 帳號開的 issue #3 觸發了（actor=arcobaleno64） | 一致 |
 | 13 | 例外：`workflow_dispatch` 由 `GITHUB_TOKEN` 觸發仍會建立執行 | 觸發 | 2026-11-03：dispatch API 回 `204`，產生 `workflow_dispatch` 執行，actor=`github-actions[bot]` | 一致 |
+| 14 | 沒有 `id-token: write` 就不能請求 OIDC 權杖 | 沒有請求用的環境變數 | 2026-11-03：僅 `contents: read` 的 job，`ACTIONS_ID_TOKEN_REQUEST_URL` 與 `ACTIONS_ID_TOKEN_REQUEST_TOKEN` 都不存在（`request-env-present=[no]`） | 一致 |
+| 14 | 簽發者 | `https://token.actions.githubusercontent.com` | 2026-11-03：`iss=[https://token.actions.githubusercontent.com]`；簽章演算法 `RS256`，標頭有 `kid`；權杖由三段組成 | 一致 |
+| 14 | 預設受眾是擁有者網址，可自訂 | 預設 `https://github.com/<擁有者>` | 2026-11-03：預設 `aud=[https://github.com/arcobaleno64]`；加 `&audience=sts.example.invalid` 後 `aud=[sts.example.invalid]` | 一致 |
+| 14 | `sub` 預設格式依情境而異（分支） | `repo:組織/儲存庫:ref:refs/heads/分支` | 2026-11-03：實際為 `repo:arcobaleno64@169420133/gh-200-actions-lab@1443805538:ref:refs/heads/main`（含擁有者與儲存庫的數字 ID） | 一致（章節另一段已寫明新 repository 會含 ID；章節的格式範例是舊格式） |
+| 14 | 使用環境時 `sub` 改為環境形式 | `...:environment:<名稱>` | 2026-11-03：`sub=[repo:arcobaleno64@169420133/gh-200-actions-lab@1443805538:environment:lab14]`，另有 `environment=[lab14]` 聲明；沒用環境時 `environment` 聲明不存在 | 一致 |
+| 14 | `job_workflow_ref` 指向實際執行的工作流程檔 | 經可重用工作流程時指向被呼叫的檔案 | 2026-11-03：一般 job 為 `.../lab14-oidc.yml@refs/heads/main`；經可重用工作流程為 `.../lab14-called.yml@refs/heads/main`，同時 `workflow` 與 `workflow_ref` 仍是呼叫端的 `lab14-oidc` | 一致 |
+| 14 | 常用聲明 | `sub`、`repository`、`ref`、`environment`、`job_workflow_ref`、`workflow`、`actor`、`event_name` | 2026-11-03：全部存在；另有 `repository_id`、`repository_owner_id`、`repository_visibility`、`actor_id`、`run_id`、`run_number`、`run_attempt`、`runner_environment`、`job_workflow_sha`、`workflow_sha`、`ref_protected`、`base_ref`、`head_ref`、`check_run_id`、`environment_node_id`、`jti` 與標準欄位（`iat`、`nbf`、`exp`） | 一致（章節未列全） |
+| 14 | 權杖是短期的 | 章內未核對 | 2026-11-03：`exp - iat = 300` 秒（5 分鐘） | 新發現 |

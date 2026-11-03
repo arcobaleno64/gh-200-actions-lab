@@ -19,7 +19,7 @@
 | 11 | 三種自訂 action | D3-O1、D3-O2 | 已跑（2026-11-03） |
 | 12 | script injection 與環境變數防範 | D5-O1 | 已跑（2026-11-03） |
 | 13 | `GITHUB_TOKEN` 權限與觸發規則 | D5-O1 | 已跑（2026-11-03） |
-| 14 | OIDC：只檢視 claims，不連雲端 | D5-O1 | 待寫 |
+| 14 | OIDC：只檢視 claims，不連雲端 | D5-O1 | 已跑（2026-11-03） |
 
 ## 實驗 1：功能分支的 schedule 與 workflow_dispatch
 
@@ -194,6 +194,19 @@ b'` 才能傳多行；擷取日誌時要避開 workflow 原始碼裡那行 `echo
 **預期：** 沒寫 `permissions` 與工作流程層級 `contents: read` 寫入被擋；job 層級 `issues: write` 與 `write-all` 寫入成功；`{}` 寫入被擋；`GITHUB_TOKEN` 開 issue 不觸發 target，dispatch 會；使用者開的 issue 會觸發。
 **驗證方式：** 貼上各 job 的 `RESULT13` 行與 target 的執行紀錄。
 
-## 實驗 14
+## 實驗 14：OIDC 權杖的聲明（只檢視，不連雲端）
 
-尚未撰寫；規劃見總表。每個實驗寫完前先確認它能解決學習站章節裡哪個「尚未核對」的項目，再動手。
+**學習站的說法：** 要有 `permissions: id-token: write` 才能請求 JWT；簽發者是 `https://token.actions.githubusercontent.com`；預設受眾是 repository 擁有者的網址，可用參數改；`sub` 預設格式依觸發情境（分支、環境、標籤…）不同；`job_workflow_ref` 指向實際執行的工作流程檔；2026 年 7 月 15 日之後建立的 repository，`sub` 會含擁有者與 repository 的 ID。
+
+**步驟：**
+1. `.github/actions/lab14-claims`：用 `ACTIONS_ID_TOKEN_REQUEST_URL`／`ACTIONS_ID_TOKEN_REQUEST_TOKEN` 取得權杖，`::add-mask::` 遮蔽原始權杖，**只解碼並印出聲明，不印權杖、不送到任何雲端**。
+2. `lab14-oidc.yml` 五個 job：沒有 `id-token: write`；有權限、預設受眾；自訂受眾 `sts.example.invalid`（`.invalid` 保留網域，不會解析）；`environment: lab14`；經可重用工作流程 `lab14-called.yml`。
+3. 做完刪除自動建立的環境 `lab14`。
+
+**預期：** 沒權限時沒有請求用的環境變數；其餘依上述說法。
+**驗證方式：** 貼上各 job 的聲明。
+**備註：** 環境 `lab14` 是第一次被 `environment:` 參考時自動建立的，實驗後已用 API 刪除。
+
+## 還沒做的實驗
+
+實驗 1（排程，會持續執行，需要事後清理）尚未執行。
