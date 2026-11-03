@@ -30,3 +30,12 @@
 | 7 | restore-keys 依列出順序 | 先列者優先 | 2026-11-03：列 `q-,p-` 命中 `lab07-q-1`；列 `p-,q-` 命中 `lab07-p-2` | 一致 |
 | 7 | 同一個前綴符合多個時用最近建立的 | p-1 較舊、p-2 較新 → 選 p-2 | 2026-11-03：`lab07-p-` 命中 `lab07-p-2`（p-1 建立於 07:35:25，p-2 於 07:35:43 UTC） | 一致 |
 | 7 | 完全相同的 key 優先於前綴 | key=`lab07-p-1` 命中 p-1 | 2026-11-03：`cache-hit=true`，`matched=lab07-p-1`，`content=p1`（沒有選較新的 p-2） | 一致 |
+| 8 | v4 成品不可變，同名不能再上傳 | 第二次上傳失敗 | 2026-11-03：同一次執行第二次上傳 `build`，`##[error]Failed to CreateArtifact: ... (409) Conflict: an artifact with this name already exists on the workflow run`，步驟 outcome=failure | 一致 |
+| 8 | 上傳回傳 digest，下載端比對 | 兩端 SHA256 相同 | 2026-11-03：上傳 `SHA256 digest of uploaded artifact zip is b49e9e16…`，下載 `SHA256 digest of downloaded artifact is b49e9e16…` | 一致 |
+| 8 | 同一次執行可下載稍早上傳的成品 | 成功 | 2026-11-03：`download-same-run` 讀到 `first` | 一致 |
+| 8 | 跨執行下載要提供 run-id 與 token | 提供後成功 | 2026-11-03：`run-id` 加 `github-token` 成功讀到 `first`；`with_token=false`（傳空字串）也成功，因為空字串使用預設的 `github.token`，沒有測到「沒有 token」 | 部分一致；token 的必要性未驗證 |
+| 8 | REST 下載回 302，網址在 Location | 302 | 2026-11-03：`HTTP/1.1 302 Found`，`Location` 指向 `productionresultssa11.blob.core.windows.net` | 一致 |
+| 8 | 下載網址只有 1 分鐘有效 | 75 秒後失敗 | 2026-11-03：**75 秒後仍回 200**；網址的 `st=07:44:54Z`、`se=07:54:59Z`，有效約 10 分鐘 | **不一致**（官方頁面寫 1 分鐘，實測約 10 分鐘） |
+| 8 | archive_format 只能是 zip | tar 失敗 | 2026-11-03：`.../<id>/tar` 回 404 | 一致 |
+| 8 | 成品物件有 expires_at；retention-days 可縮短 | 約 1 天後 | 2026-11-03：`retention-days: 1`，建立 `2026-11-03T07:43:11Z`，`expires_at=2026-11-04T07:43:10Z`，`expired=false` | 一致 |
+| 8 | 刪除執行會連同成品一起刪除 | 成品消失 | 2026-11-03：刪除 run 41598226131（回 204）後該 run 的成品不再出現在列表，其他兩次執行的成品還在 | 一致 |

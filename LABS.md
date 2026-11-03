@@ -13,7 +13,7 @@
 | 5 | 服務容器：容器內與 runner 上的連線 | D1-O2 | 已跑（2026-11-03） |
 | 6 | `outcome` 與 `conclusion`；`if` 內的 context | D1-O2 | 已跑（2026-11-03） |
 | 7 | 快取的分支隔離與 `restore-keys` 順序 | D1-O3 | 已跑（2026-11-03） |
-| 8 | 成品：同名上傳、跨執行下載、REST 302 網址 | D1-O3、D2-O2 | 待寫 |
+| 8 | 成品：同名上傳、跨執行下載、REST 302 網址 | D1-O3、D2-O2 | 已跑（2026-11-03） |
 | 9 | 重新執行與除錯記錄 | D2-O1 | 待寫 |
 | 10 | 可重用工作流程與複合 action | D2-O3、D3-O1 | 待寫 |
 | 11 | 三種自訂 action | D3-O1、D3-O2 | 待寫 |
@@ -117,6 +117,20 @@
 **踩到的坑：** `-f restore_keys` 要用 bash 的 `$'a
 b'` 才能傳多行；擷取日誌時要避開 workflow 原始碼裡那行 `echo "RESULT ..."`，否則會抓到未展開的變數名稱。
 
-## 實驗 8 到 14
+## 實驗 8：成品的不可變、跨執行下載與 REST 302 網址
+
+**學習站的說法：** v4 成品不可變，同名不能再上傳；上傳回傳 `digest` 且下載端比對；`download-artifact` 預設只能取同一次執行的成品，跨執行要提供 token 與執行編號；REST 下載回 302，`archive_format` 必須是 `zip`，網址只有 1 分鐘有效；刪除執行會連同成品一起刪除。
+
+**步驟：**
+1. `.github/workflows/lab08-artifacts.yml` 已在 `main`。手動執行一次（不填輸入）：同一次執行上傳 `build` 兩次（第二次設 `continue-on-error`），再用 `download-same-run` 下載。
+2. 以第一次的 run id 當 `run_id` 再執行兩次，`with_token` 分別為 true 與 false，看 `download-cross-run` 是否成功。
+3. 用 `gh api repos/<擁有者>/<repo>/actions/runs/<run_id>/artifacts` 看 `expires_at` 與 `digest`；用 `curl -D` 帶 token 呼叫 `.../actions/artifacts/<id>/zip`，看 302 與 `Location`，立刻與 75 秒後各 GET 一次，並解析網址中的 `se=`（到期時間，不要貼出簽章）。
+4. 呼叫 `.../<id>/tar`；刪除一次執行（`DELETE .../actions/runs/<run_id>`）後再列出成品。
+
+**預期：** 同名第二次上傳失敗；同一次執行可下載；跨執行成功；302 網址約 1 分鐘後失效；`tar` 失敗；刪除執行後成品消失。
+**驗證方式：** 貼上各步驟輸出。
+**踩到的坑：** `with_token=false` 時我傳空字串給 `github-token`，實際上動作改用預設的 `github.token`，所以沒有測到「完全沒有 token」；這一項不能下結論。
+
+## 實驗 9 到 14
 
 尚未撰寫；規劃見總表。每個實驗寫完前先確認它能解決學習站章節裡哪個「尚未核對」的項目，再動手。
