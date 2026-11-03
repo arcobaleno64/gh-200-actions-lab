@@ -7,8 +7,8 @@
 | # | 實驗 | 對應目標 | 狀態 |
 | - | ---- | -------- | ---- |
 | 1 | 功能分支的 `schedule` 與 `workflow_dispatch` | D1-O1 | 已寫 |
-| 2 | 各事件的 `GITHUB_SHA` 與 `GITHUB_REF` | D1-O1 | 已寫 |
-| 3 | boolean input：`inputs` 與 `github.event.inputs` | D1-O1 | 已寫 |
+| 2 | 各事件的 `GITHUB_SHA` 與 `GITHUB_REF` | D1-O1 | 已跑（2026-11-03） |
+| 3 | boolean input：`inputs` 與 `github.event.inputs` | D1-O1 | 已跑（2026-11-03） |
 | 4 | 矩陣的 `include`、`exclude`、`fail-fast` | D1-O2 | 待寫 |
 | 5 | 服務容器：容器內與 runner 上的連線 | D1-O2 | 待寫 |
 | 6 | `outcome` 與 `conclusion`；`if` 內的 context | D1-O2 | 待寫 |
