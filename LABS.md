@@ -16,7 +16,7 @@
 | 8 | 成品：同名上傳、跨執行下載、REST 302 網址 | D1-O3、D2-O2 | 已跑（2026-11-03） |
 | 9 | 重新執行與除錯記錄 | D2-O1 | 已跑（2026-11-03） |
 | 10 | 可重用工作流程與複合 action | D2-O3、D3-O1 | 已跑（2026-11-03） |
-| 11 | 三種自訂 action | D3-O1、D3-O2 | 待寫 |
+| 11 | 三種自訂 action | D3-O1、D3-O2 | 已跑（2026-11-03） |
 | 12 | script injection 與環境變數防範 | D5-O1 | 待寫 |
 | 13 | `GITHUB_TOKEN` 權限與觸發規則 | D5-O1 | 待寫 |
 | 14 | OIDC：只檢視 claims，不連雲端 | D5-O1 | 待寫 |
@@ -157,6 +157,18 @@ b'` 才能傳多行；擷取日誌時要避開 workflow 原始碼裡那行 `echo
 **驗證方式：** 貼上每個 job 的 `RESULT10` 行與四個無效檔案的註解訊息。
 **踩到的坑：** 用 bash 的 here-doc 一次寫多個含引號的 YAML 容易因為引號配對失敗而整段不執行，改用 Write 工具逐檔寫入。
 
-## 實驗 11 到 14
+## 實驗 11：三種自訂 action
+
+**學習站的說法：** Docker 容器 action 只能在 Linux runner 執行；JavaScript action 以 `INPUT_<名稱>` 環境變數收輸入；複合 action 的輸出要有 `value`；JavaScript／Docker 的輸出靠 `$GITHUB_OUTPUT`。
+
+**步驟：**
+1. `.github/actions/lab11-js`（`pre`／`main`／`post`，不依賴套件）、`lab11-docker`（alpine 加 `entrypoint.sh`，輸入用 `args` 傳入）、`lab11-composite-meta` 已在 `main`；`lab11-actions.yml` 在 ubuntu 與 windows 各跑一次，每個 action 都印出 `RESULT11` 行。
+2. JS action 宣告一個 `required: true` 的輸入但呼叫端不傳，看是否報錯。
+
+**預期：** Docker 在 Windows 失敗；JS 收到 `INPUT_*`；輸出可由後續步驟讀到；`post` 讀得到 `main` 存的狀態。
+**驗證方式：** 貼上各 job 的 `RESULT11` 行與註解訊息。
+**踩到的坑：** 我的複合 action 探測腳本用 `env | grep '^INPUT_'`，沒有符合時 `pipefail` 讓步驟失敗；那是腳本問題，不是 action 規則，加 `|| true` 後重跑。
+
+## 實驗 12 到 14
 
 尚未撰寫；規劃見總表。每個實驗寫完前先確認它能解決學習站章節裡哪個「尚未核對」的項目，再動手。

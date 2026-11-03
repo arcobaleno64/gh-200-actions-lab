@@ -56,3 +56,13 @@
 | 10 | 呼叫端 job 不能有 `environment` | 解析時被拒絕 | 2026-11-03：`(Line: 11, Col: 5): Unexpected value 'environment'` | 一致 |
 | 10 | `uses` 不能使用運算式 | 解析時被拒絕 | 2026-11-03：`(Line: 8, Col: 11): A template expression is not allowed in this context` | 一致 |
 | 10 | 呼叫端 job 不能與 `runs-on` 並存 | 解析時被拒絕 | 2026-11-03：有 `runs-on` 時該 job 被當成一般 job 解析，錯誤是 `Unexpected value 'uses'`、`Unexpected value 'with'`（不是指 `runs-on` 本身） | 一致（錯誤訊息指向 `uses`／`with`） |
+| 11 | Docker 容器 action 只能在 Linux runner 執行 | Windows 失敗 | 2026-11-03：`windows-latest` 上 `##[error]Container action is only supported on Linux`，步驟 outcome=failure；同一個 action 在 ubuntu 成功 | 一致 |
+| 11 | JavaScript action 在 Windows 也能執行 | 成功 | 2026-11-03：`windows-latest` 上 `lab11-js` 的 main 與 post 都執行，outcome=success | 一致 |
+| 11 | JS action 以 `INPUT_<名稱>` 環境變數收輸入 | 變數存在 | 2026-11-03：輸入 `who-to-greet` 的環境變數名稱是 `INPUT_WHO-TO-GREET`（連字號保留、字母大寫）；未傳入但有 `default` 的輸入也會出現 | 一致 |
+| 11 | `required: true` 的輸入沒傳會報錯 | 失敗 | 2026-11-03：`must-have` 宣告 `required: true` 但呼叫端沒傳，步驟成功，`INPUT_MUST-HAVE` 為空字串 | 章節未明確說；實測 runner 不強制 required |
+| 11 | JS／Docker 的輸出靠 `$GITHUB_OUTPUT` | 後續步驟讀得到 | 2026-11-03：`steps.js.outputs.greeting` 為 `Hello Mona`；`steps.dk.outputs.greeting` 為 `Hello Octo`（metadata 只宣告 `description`，沒有 `value`） | 一致 |
+| 11 | `post` 可讀到 `main` 寫入 `$GITHUB_STATE` 的值 | `STATE_marker` | 2026-11-03：`post` 印出 `state-marker=[from-main]` | 一致 |
+| 11 | Docker action 的輸入透過 `args` 傳入 | 容器收到參數 | 2026-11-03：`args-count=[1] arg1=[Octo]`；容器內也看得到 `INPUT_WHO-TO-GREET=Octo`（與章節引用的官方敘述「不會自動成為 INPUT_ 環境變數」不同）；容器內 `GITHUB_WORKSPACE=/github/workspace`，`GITHUB_OUTPUT` 已設定 | 部分不一致（INPUT_ 變數實測存在） |
+| 11 | 複合 action 輸出需要 `value` | `steps.cp.outputs.greeting` | 2026-11-03：`composite-output=[Hello Cat]` | 一致 |
+| 11 | 複合 action 內以 `inputs` context 取輸入 | 取得 | 2026-11-03：`${{ inputs.who-to-greet }}` 為 `Cat`；環境中沒有 `INPUT_*` 變數（`input-env-keys=[]`）；`GITHUB_ACTION_PATH` 有設定，JS action 內沒有 | 確認 |
+| 11 | `pre` 步驟在本機（`./`）action 的行為 | 章內未核對 | 2026-11-03：宣告 `pre: pre.js` 的本機 action 出現警告 `pre execution is not supported for local action from './.github/actions/lab11-js'`，`pre.js` 沒有執行（`main`、`post` 有）。遠端 action 的 `pre` 未測 | 新發現 |
