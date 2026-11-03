@@ -1,0 +1,54 @@
+name: lab12-injection
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: Untrusted text (for the shell and JavaScript probes)
+        required: true
+        default: Mona
+      multiline:
+        description: Untrusted text that may contain a newline (for the GITHUB_ENV probe)
+        required: true
+        default: plain
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: A - inline expression in run (vulnerable pattern)
+        run: |
+          echo "RESULT12 A greeting=[Hello ${{ inputs.name }}]"
+
+      - name: B - same value through an environment variable
+        env:
+          NAME: ${{ inputs.name }}
+        run: |
+          echo "RESULT12 B greeting=[Hello $NAME]"
+
+      - name: C - inline expression in github-script (vulnerable pattern)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.info('RESULT12 C greeting=[Hello ${{ inputs.name }}]')
+
+      - name: D - same value through process.env in github-script
+        uses: actions/github-script@v7
+        env:
+          NAME: ${{ inputs.name }}
+        with:
+          script: |
+            core.info('RESULT12 D greeting=[Hello ' + process.env.NAME + ']')
+
+      - name: E - untrusted text appended to GITHUB_ENV (vulnerable pattern)
+        env:
+          VAL: ${{ inputs.multiline }}
+        run: |
+          echo "LAB12_NOTE=$VAL" >> "$GITHUB_ENV"
+
+      - name: E2 - read variables back
+        run: |
+          echo "RESULT12 E note=[$LAB12_NOTE] injected-var=[${LAB12_INJECTED:-unset}]"
