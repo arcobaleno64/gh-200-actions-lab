@@ -8,3 +8,7 @@
 | 2 | push 的 GITHUB_SHA 是推送的最新 commit | 等於該分支尖端 commit | 2026-11-03：push 到 lab02/a，GITHUB_SHA=0444fc0d…（分支尖端），GITHUB_REF=refs/heads/lab02/a；在 main 以 workflow_dispatch 執行時 SHA=bb2abd8a…、REF=refs/heads/main | 一致 |
 | 3 | github.event.inputs 把 boolean 轉成字串 | 與 true 比較的步驟不執行 | 2026-11-03：dry_run=true 時 raw=true，步驟 b（== 'true'）執行、步驟 c（== true）略過；dry_run=false 時 b 與 c 都略過 | 一致 |
 | 3 | inputs 保留 boolean 型別 | `if: inputs.dry_run` 在 true 時執行 | 2026-11-03：dry_run=true 時步驟 a 執行；dry_run=false 時 a 略過 | 一致 |
+| 4 | fail-fast 啟用時一個組合失敗會取消其他組合（預設值章內未核對） | 沒設定時也被取消 | 2026-11-03：沒設 fail-fast，`default-failfast (1)` 失敗，(2)(3)(4) 全部 cancelled | 一致，且確認預設為啟用 |
+| 4 | fail-fast: false 時其他組合照常完成 | (2)(3)(4) 成功 | 2026-11-03：`failfast-false (1)` 失敗，(2)(3)(4) 都是 success | 一致 |
+| 4 | include 與 exclude 的 job 數 | 4 − 1 + 1 = 4 個 | 2026-11-03：count 共 4 個 job：(macos-latest, 20)、(ubuntu-latest, 16)、(ubuntu-latest, 18)、(windows-latest, 18)；(windows-latest, 16) 不存在 | 一致 |
+| 4 | 矩陣 job 的顯示名稱（章內未核對） | `job-id (值, 值)` | 2026-11-03：單一變數是 `default-failfast (1)`；兩個變數是 `count (ubuntu-latest, 18)`，include 新增的組合也同格式 | 確認 |

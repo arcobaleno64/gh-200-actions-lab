@@ -9,7 +9,7 @@
 | 1 | 功能分支的 `schedule` 與 `workflow_dispatch` | D1-O1 | 已寫 |
 | 2 | 各事件的 `GITHUB_SHA` 與 `GITHUB_REF` | D1-O1 | 已跑（2026-11-03） |
 | 3 | boolean input：`inputs` 與 `github.event.inputs` | D1-O1 | 已跑（2026-11-03） |
-| 4 | 矩陣的 `include`、`exclude`、`fail-fast` | D1-O2 | 待寫 |
+| 4 | 矩陣的 `include`、`exclude`、`fail-fast` | D1-O2 | 已跑（2026-11-03） |
 | 5 | 服務容器：容器內與 runner 上的連線 | D1-O2 | 待寫 |
 | 6 | `outcome` 與 `conclusion`；`if` 內的 context | D1-O2 | 待寫 |
 | 7 | 快取的分支隔離與 `restore-keys` 順序 | D1-O3 | 待寫 |
@@ -61,6 +61,20 @@
 **預期：** `dry_run` 為 true 時，步驟 a 與 b 會執行，步驟 c（與布林值 true 比較）不會；為 false 時，a 不執行，b 也不執行。
 **驗證方式：** 把兩次執行的步驟狀態貼進 `OBSERVATIONS.md`。
 
-## 實驗 4 到 14
+## 實驗 4：矩陣的 include、exclude 與 fail-fast
+
+**學習站的說法：** `include` 與 `exclude` 修改組合；`fail-fast` 啟用時一個組合失敗會取消其他組合。**未核對：** 沒設定 `fail-fast` 時的預設行為、矩陣 job 的顯示名稱。
+
+**步驟：**
+1. `.github/workflows/lab04-matrix.yml` 已在 `main`，在 Actions 手動執行。
+2. 看 `default-failfast`（沒設 `fail-fast`，id 1 會失敗，其他 sleep 45 秒）：其他組合是被取消還是完成。
+3. 看 `failfast-false`（同樣的形狀，但 `fail-fast: false`）。
+4. 看 `count`：2×2 矩陣、`exclude` 一組、`include` 一組新的 macOS，共產生幾個 job，名稱怎麼顯示。
+5. 用 `gh api repos/<擁有者>/<repo>/actions/runs/<run_id>/jobs --jq '.jobs[]|[.name,.conclusion]|@tsv'` 取得每個 job 的名稱與結果。
+
+**預期：** `default-failfast` 的其他組合被取消；`failfast-false` 的其他組合完成；`count` 是 4 個 job。
+**驗證方式：** 把 job 名稱與結果貼進 `OBSERVATIONS.md`。
+
+## 實驗 5 到 14
 
 尚未撰寫；規劃見總表。每個實驗寫完前先確認它能解決學習站章節裡哪個「尚未核對」的項目，再動手。
