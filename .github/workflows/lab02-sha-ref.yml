@@ -1,0 +1,24 @@
+name: lab02-sha-ref
+
+on:
+  push:
+    branches: [main, "lab02/**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  show:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print event context
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          echo "event_name=$EVENT_NAME"
+          echo "GITHUB_SHA=$GITHUB_SHA"
+          echo "GITHUB_REF=$GITHUB_REF"
+          echo "pull_request.head.sha=$PR_HEAD_SHA"

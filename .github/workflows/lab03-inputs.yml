@@ -1,0 +1,29 @@
+name: lab03-inputs
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Boolean input used to compare input contexts
+        type: boolean
+        default: false
+
+permissions: {}
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: a - if inputs.dry_run
+        if: inputs.dry_run
+        run: echo "a ran"
+      - name: b - if github.event.inputs.dry_run == 'true'
+        if: github.event.inputs.dry_run == 'true'
+        run: echo "b ran"
+      - name: c - if github.event.inputs.dry_run == true
+        if: github.event.inputs.dry_run == true
+        run: echo "c ran"
+      - name: Print raw value
+        env:
+          RAW: ${{ github.event.inputs.dry_run }}
+        run: echo "raw=$RAW"

@@ -1,0 +1,66 @@
+# 實驗清單
+
+每個實驗標明對應的學習站目標。步驟只用公開 repository 與 GitHub 代管的 runner。
+
+## 總表
+
+| # | 實驗 | 對應目標 | 狀態 |
+| - | ---- | -------- | ---- |
+| 1 | 功能分支的 `schedule` 與 `workflow_dispatch` | D1-O1 | 已寫 |
+| 2 | 各事件的 `GITHUB_SHA` 與 `GITHUB_REF` | D1-O1 | 已寫 |
+| 3 | boolean input：`inputs` 與 `github.event.inputs` | D1-O1 | 已寫 |
+| 4 | 矩陣的 `include`、`exclude`、`fail-fast` | D1-O2 | 待寫 |
+| 5 | 服務容器：容器內與 runner 上的連線 | D1-O2 | 待寫 |
+| 6 | `outcome` 與 `conclusion`；`if` 內的 context | D1-O2 | 待寫 |
+| 7 | 快取的分支隔離與 `restore-keys` 順序 | D1-O3 | 待寫 |
+| 8 | 成品：同名上傳、跨執行下載、REST 302 網址 | D1-O3、D2-O2 | 待寫 |
+| 9 | 重新執行與除錯記錄 | D2-O1 | 待寫 |
+| 10 | 可重用工作流程與複合 action | D2-O3、D3-O1 | 待寫 |
+| 11 | 三種自訂 action | D3-O1、D3-O2 | 待寫 |
+| 12 | script injection 與環境變數防範 | D5-O1 | 待寫 |
+| 13 | `GITHUB_TOKEN` 權限與觸發規則 | D5-O1 | 待寫 |
+| 14 | OIDC：只檢視 claims，不連雲端 | D5-O1 | 待寫 |
+
+## 實驗 1：功能分支的 schedule 與 workflow_dispatch
+
+**學習站的說法：** `schedule` 與 `workflow_dispatch` 只在預設分支的工作流程檔上觸發。
+
+**步驟：**
+1. 從 `main` 建立分支 `lab01-schedule`。
+2. 把 `labs/01-schedule.yml` 複製到 `.github/workflows/lab01-schedule.yml` 並推送該分支。
+3. 到 Actions 頁籤：等 15 分鐘，看有沒有執行；看左側清單有沒有這個工作流程。
+4. 把分支合併到 `main`，再等下一個 5 分鐘的整點附近，看有沒有排程執行。
+5. 開啟任何一次排程執行，記下它的 `GITHUB_SHA`（預期是 `main` 的最後一個 commit）。
+
+**預期：** 步驟 3 沒有任何執行，也不能手動觸發；步驟 4 之後才開始排程（可能延遲，高負載時尤其明顯）。
+**驗證方式：** 截圖或貼上 Actions 頁面的執行列表，並記錄延遲多久。
+**記得清理：** 做完把 cron 改成每日一次或刪除檔案，避免持續執行。
+
+## 實驗 2：各事件的 GITHUB_SHA 與 GITHUB_REF
+
+**學習站的說法：** `pull_request` 的 `GITHUB_SHA` 是 PR 合併 commit，`GITHUB_REF` 是 `refs/pull/編號/merge`；`push` 是推送的最新 commit；`workflow_dispatch` 是收到 dispatch 的分支最後 commit。
+
+**步驟：**
+1. `.github/workflows/lab02-sha-ref.yml` 已經在 `main`。
+2. 在 `main` 手動執行一次（Run workflow），記下輸出。
+3. 建分支 `lab02/a`，加一個 commit 並推送，記下 `push` 的輸出。
+4. 開 PR（`lab02/a` → `main`），記下 `pull_request` 的輸出，並與 PR 頁面上的 head commit 比較。
+
+**預期：** `pull_request` 的 `GITHUB_SHA` 不等於 PR 分支尖端 commit。
+**驗證方式：** 把三組輸出貼進 `OBSERVATIONS.md`。
+
+## 實驗 3：boolean input 的型別
+
+**學習站的說法：** `inputs` context 保留 boolean 型別；`github.event.inputs` 會把 boolean 轉成字串。
+
+**步驟：**
+1. `.github/workflows/lab03-inputs.yml` 已經在 `main`。
+2. 在 Actions 手動執行，`dry_run` 勾選（true）一次、不勾選（false）一次。
+3. 記下哪些步驟有執行、哪些被略過，以及最後一步印出的原始字串。
+
+**預期：** `dry_run` 為 true 時，步驟 a 與 b 會執行，步驟 c（與布林值 true 比較）不會；為 false 時，a 不執行，b 也不執行。
+**驗證方式：** 把兩次執行的步驟狀態貼進 `OBSERVATIONS.md`。
+
+## 實驗 4 到 14
+
+尚未撰寫；規劃見總表。每個實驗寫完前先確認它能解決學習站章節裡哪個「尚未核對」的項目，再動手。
