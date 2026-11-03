@@ -1,0 +1,36 @@
+name: lab09-rerun
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Report
+        env:
+          ATTEMPT: ${{ github.run_attempt }}
+          ACTOR: ${{ github.actor }}
+          TRIGGERING_ACTOR: ${{ github.triggering_actor }}
+        run: |
+          echo "::debug::lab09 debug message"
+          echo "RESULT9 attempt=[$ATTEMPT] GITHUB_SHA=[$GITHUB_SHA] checkout-head=[$(git log -1 --format=%H)] remote-main=[$(git ls-remote origin refs/heads/main | cut -f1)] actor=[$ACTOR] triggering_actor=[$TRIGGERING_ACTOR]"
+      - name: Fail on the first attempt only
+        env:
+          ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          if [ "$ATTEMPT" = "1" ]; then echo "failing on purpose"; exit 1; fi
+          echo "attempt $ATTEMPT passes"
+
+  ok:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Always succeeds
+        env:
+          ATTEMPT: ${{ github.run_attempt }}
+        run: echo "RESULT9 ok-job attempt=[$ATTEMPT]"
