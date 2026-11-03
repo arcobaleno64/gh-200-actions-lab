@@ -17,3 +17,9 @@
 | 5 | job 直接在 runner 上、沒有 ports | localhost 連不上 | 2026-11-03：`on-runner-noports` 的 localhost:6379 回 `Connection refused`，redis 解析不到 | 一致 |
 | 5 | job 在容器內時用服務標籤連 | redis:6379 回 +PONG，localhost 連不上 | 2026-11-03：`in-container` 的 redis:6379 回 `+PONG`，localhost:6379 回 `Connection refused` | 一致 |
 | 5 | services 的 options 帶 --health-cmd（章內未核對） | 被接受 | 2026-11-03：job 日誌出現 `(health: starting)` 後變 `healthy`，再執行步驟 | 確認 |
+| 6 | outcome 是套用 continue-on-error 之前的結果 | 步驟 outcome == 'failure' 會執行 | 2026-11-03：`lint` 失敗並 continue-on-error，印出 `outcome=failure conclusion=success`；`outcome == 'failure'` 的步驟執行 | 一致 |
+| 6 | conclusion 是套用之後的結果 | `conclusion == 'failure'` 略過，`== 'success'` 執行 | 2026-11-03：`conclusion == 'failure'` 步驟 skipped，`conclusion == 'success'` 步驟 success | 一致 |
+| 6 | jobs.<id>.if 不能用 secrets | 解析時被拒絕 | 2026-11-03：run 41581867144，`(Line: 9, Col: 9): Unrecognized named-value: 'secrets'`，沒有 job | 一致 |
+| 6 | steps.if 不能用 secrets | 解析時被拒絕 | 2026-11-03：run 41581868608，`(Line: 11, Col: 13): Unrecognized named-value: 'secrets'` | 一致 |
+| 6 | jobs.<id>.if 不能用 matrix | 解析時被拒絕 | 2026-11-03：run 41581865573，`Unrecognized named-value: 'matrix'` | 一致 |
+| 6 | 把 secret 放進 job 層級 env 再判斷可行 | 未設定的 secret 比較為 false | 2026-11-03：`HAS_TOKEN=[false]`，`if: env.HAS_TOKEN == 'true'` 的步驟 skipped | 一致 |

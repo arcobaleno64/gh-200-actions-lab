@@ -11,7 +11,7 @@
 | 3 | boolean input：`inputs` 與 `github.event.inputs` | D1-O1 | 已跑（2026-11-03） |
 | 4 | 矩陣的 `include`、`exclude`、`fail-fast` | D1-O2 | 已跑（2026-11-03） |
 | 5 | 服務容器：容器內與 runner 上的連線 | D1-O2 | 已跑（2026-11-03） |
-| 6 | `outcome` 與 `conclusion`；`if` 內的 context | D1-O2 | 待寫 |
+| 6 | `outcome` 與 `conclusion`；`if` 內的 context | D1-O2 | 已跑（2026-11-03） |
 | 7 | 快取的分支隔離與 `restore-keys` 順序 | D1-O3 | 待寫 |
 | 8 | 成品：同名上傳、跨執行下載、REST 302 網址 | D1-O3、D2-O2 | 待寫 |
 | 9 | 重新執行與除錯記錄 | D2-O1 | 待寫 |
@@ -88,6 +88,19 @@
 **驗證方式：** 把六個探測結果貼進 `OBSERVATIONS.md`。
 **踩到的坑：** 探測函式在 `bash -e` 下，失敗的指令替換會讓整個步驟中止，要用 `|| rc=$?` 接住；容器內預設 shell 是 `sh`，要明確指定 `shell: bash` 才有 `/dev/tcp`。
 
-## 實驗 6 到 14
+## 實驗 6：outcome 與 conclusion；if 內的 context
+
+**學習站的說法：** `outcome` 是套用 `continue-on-error` 之前的結果，`conclusion` 是之後的結果；`secrets` 與 `matrix` 不能用在 `jobs.<id>.if`，`secrets` 也不能用在 `steps.if`。
+
+**步驟：**
+1. `.github/workflows/lab06-outcome.yml` 已在 `main`：`lint` 步驟失敗但設了 `continue-on-error: true`，後面三個步驟分別用 `outcome == 'failure'`、`conclusion == 'failure'`、`conclusion == 'success'` 判斷；另有 job 層級 `env` 放 `${{ secrets.LAB06_NOT_SET != '' }}`（secret 刻意不設）。手動執行並看各步驟狀態。
+2. 建分支 `lab06/invalid`，把 `labs/06-invalid-*.yml` 三個檔案複製到 `.github/workflows/` 並推送，各自會因 push 觸發一次。
+3. 開各次執行頁面，看頁面上的 Annotations 訊息（API 取不到，要從網頁看）。
+
+**預期：** 步驟 `outcome == 'failure'` 與 `conclusion == 'success'` 執行，`conclusion == 'failure'` 略過；三個無效檔案都在解析時被拒絕。
+**驗證方式：** 貼上步驟狀態與三則錯誤訊息。
+**踩到的坑：** 我第一版 `lab06-outcome.yml` 本身就無效：`run: echo "ran: outcome is failure"` 在純量中含 `: `，YAML 解析失敗，頁面只顯示 `You have an error in your yaml syntax on line 26`；改成不含冒號的字串後才通過。
+
+## 實驗 7 到 14
 
 尚未撰寫；規劃見總表。每個實驗寫完前先確認它能解決學習站章節裡哪個「尚未核對」的項目，再動手。
