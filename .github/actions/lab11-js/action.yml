@@ -1,0 +1,18 @@
+name: lab11-js
+description: JavaScript action with pre, main and post, no dependencies
+inputs:
+  who-to-greet:
+    description: Name to greet
+    required: false
+    default: World
+  must-have:
+    description: Declared required, never passed by the caller
+    required: true
+outputs:
+  greeting:
+    description: Greeting text
+runs:
+  using: node20
+  pre: pre.js
+  main: main.js
+  post: post.js

@@ -1,0 +1,15 @@
+name: lab11-docker
+description: Docker container action
+inputs:
+  who-to-greet:
+    description: Name to greet
+    required: false
+    default: World
+outputs:
+  greeting:
+    description: Greeting text
+runs:
+  using: docker
+  image: Dockerfile
+  args:
+    - ${{ inputs.who-to-greet }}

@@ -1,0 +1,20 @@
+name: lab11-composite-meta
+description: Composite action used to inspect inputs, paths and output wiring
+inputs:
+  who-to-greet:
+    description: Name to greet
+    required: false
+    default: World
+outputs:
+  greeting:
+    description: Greeting text
+    value: ${{ steps.g.outputs.greeting }}
+runs:
+  using: composite
+  steps:
+    - id: g
+      shell: bash
+      run: |
+        keys=$(env | grep '^INPUT_' | cut -d= -f1 | sort | tr '\n' ',')
+        echo "RESULT11 composite input-env-keys=[$keys] input-via-context=[${{ inputs.who-to-greet }}] action-path-set=[$([ -n "$GITHUB_ACTION_PATH" ] && echo yes || echo no)]"
+        echo "greeting=Hello ${{ inputs.who-to-greet }}" >> "$GITHUB_OUTPUT"

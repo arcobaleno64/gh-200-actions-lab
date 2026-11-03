@@ -1,0 +1,74 @@
+name: lab11-actions
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: JavaScript action
+        id: js
+        continue-on-error: true
+        uses: ./.github/actions/lab11-js
+        with:
+          who-to-greet: Mona
+      - name: JavaScript action output
+        env:
+          OUT: ${{ steps.js.outputs.greeting }}
+          OUTCOME: ${{ steps.js.outcome }}
+        run: echo "RESULT11 js-output=[$OUT] outcome=[$OUTCOME]"
+      - name: Between steps marker
+        run: echo "RESULT11 between-step"
+      - name: Docker action
+        id: dk
+        continue-on-error: true
+        uses: ./.github/actions/lab11-docker
+        with:
+          who-to-greet: Octo
+      - name: Docker action output
+        env:
+          OUT: ${{ steps.dk.outputs.greeting }}
+          OUTCOME: ${{ steps.dk.outcome }}
+        run: echo "RESULT11 docker-output=[$OUT] outcome=[$OUTCOME]"
+      - name: Composite action
+        id: cp
+        uses: ./.github/actions/lab11-composite-meta
+        with:
+          who-to-greet: Cat
+      - name: Composite action output
+        env:
+          OUT: ${{ steps.cp.outputs.greeting }}
+        run: echo "RESULT11 composite-output=[$OUT]"
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Docker action on Windows
+        id: dk
+        continue-on-error: true
+        uses: ./.github/actions/lab11-docker
+        with:
+          who-to-greet: Octo
+      - name: Report
+        shell: bash
+        env:
+          OUTCOME: ${{ steps.dk.outcome }}
+        run: echo "RESULT11 docker-on-windows outcome=[$OUTCOME]"
+      - name: JavaScript action on Windows
+        id: js
+        continue-on-error: true
+        uses: ./.github/actions/lab11-js
+        with:
+          who-to-greet: Win
+          must-have: yes
+      - name: Report JS
+        shell: bash
+        env:
+          OUTCOME: ${{ steps.js.outcome }}
+        run: echo "RESULT11 js-on-windows outcome=[$OUTCOME]"
