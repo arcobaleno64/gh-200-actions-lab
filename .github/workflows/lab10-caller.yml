@@ -1,0 +1,57 @@
+name: lab10-caller
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  call-explicit:
+    uses: ./.github/workflows/lab10-called.yml
+    with:
+      greeting: explicit
+    secrets:
+      token: ${{ secrets.LAB10_REPO_SECRET }}
+
+  call-none:
+    uses: ./.github/workflows/lab10-called.yml
+    with:
+      greeting: none
+
+  call-inherit:
+    uses: ./.github/workflows/lab10-called.yml
+    with:
+      greeting: inherit
+    secrets: inherit
+
+  use-output:
+    needs: call-explicit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read output of the called workflow
+        env:
+          RESULT: ${{ needs.call-explicit.outputs.result }}
+        run: echo "RESULT10 caller-output=[$RESULT]"
+
+  composite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Composite with the secret as an input
+        id: c
+        uses: ./.github/actions/lab10-composite
+        with:
+          token: ${{ secrets.LAB10_REPO_SECRET }}
+      - name: Read composite output
+        env:
+          RESULT: ${{ steps.c.outputs.result }}
+        run: echo "RESULT10 composite-output=[$RESULT]"
+      - name: Composite that reads secrets directly
+        id: d
+        continue-on-error: true
+        uses: ./.github/actions/lab10-composite-direct
+      - name: Report direct outcome
+        env:
+          OUTCOME: ${{ steps.d.outcome }}
+        run: echo "RESULT10 composite-direct outcome=[$OUTCOME]"

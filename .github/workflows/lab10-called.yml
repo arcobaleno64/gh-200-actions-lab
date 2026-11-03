@@ -1,0 +1,35 @@
+name: lab10-called
+
+on:
+  workflow_call:
+    inputs:
+      greeting:
+        type: string
+        required: true
+    secrets:
+      token:
+        required: false
+    outputs:
+      result:
+        description: Value produced by the called workflow
+        value: ${{ jobs.work.outputs.result }}
+
+permissions: {}
+
+jobs:
+  work:
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.make.outputs.result }}
+    steps:
+      - name: Report
+        id: make
+        env:
+          GREETING: ${{ inputs.greeting }}
+          HAS_TOKEN: ${{ secrets.token != '' }}
+          HAS_DIRECT: ${{ secrets.LAB10_REPO_SECRET != '' }}
+          EVENT: ${{ github.event_name }}
+          WF: ${{ github.workflow }}
+        run: |
+          echo "RESULT10 called event=[$EVENT] workflow=[$WF] sha=[$GITHUB_SHA] has-token-input=[$HAS_TOKEN] has-direct-secret=[$HAS_DIRECT]"
+          echo "result=${GREETING}-done" >> "$GITHUB_OUTPUT"

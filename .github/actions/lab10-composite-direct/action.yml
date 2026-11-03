@@ -1,0 +1,9 @@
+name: lab10-composite-direct
+description: Composite action that reads the secrets context directly (expected to fail)
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        HAS_DIRECT: ${{ secrets.LAB10_REPO_SECRET != '' }}
+      run: echo "RESULT10 composite-direct has-direct-secret=[$HAS_DIRECT]"

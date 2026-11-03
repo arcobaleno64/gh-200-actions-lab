@@ -1,0 +1,21 @@
+name: lab10-composite
+description: Composite action that receives a secret only through an input
+inputs:
+  token:
+    description: Token passed in by the caller
+    required: false
+    default: ""
+outputs:
+  result:
+    description: Value produced by the composite action
+    value: ${{ steps.s.outputs.result }}
+runs:
+  using: composite
+  steps:
+    - id: s
+      shell: bash
+      env:
+        HAS_TOKEN: ${{ inputs.token != '' }}
+      run: |
+        echo "RESULT10 composite has-token-input=[$HAS_TOKEN] job=[$GITHUB_JOB]"
+        echo "result=composite-done" >> "$GITHUB_OUTPUT"
