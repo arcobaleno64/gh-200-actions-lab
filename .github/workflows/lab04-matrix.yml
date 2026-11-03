@@ -1,0 +1,60 @@
+name: lab04-matrix
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  # No strategy.fail-fast: observe whether the other jobs are cancelled when id 1 fails.
+  default-failfast:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        id: [1, 2, 3, 4]
+    steps:
+      - name: Fail for id 1, wait for the others
+        env:
+          ID: ${{ matrix.id }}
+        run: |
+          if [ "$ID" = "1" ]; then echo "id 1 fails"; exit 1; fi
+          sleep 45
+          echo "id $ID finished"
+
+  # Same shape with fail-fast: false, for comparison.
+  failfast-false:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        id: [1, 2, 3, 4]
+    steps:
+      - name: Fail for id 1, wait for the others
+        env:
+          ID: ${{ matrix.id }}
+        run: |
+          if [ "$ID" = "1" ]; then echo "id 1 fails"; exit 1; fi
+          sleep 45
+          echo "id $ID finished"
+
+  # 2 x 2 = 4 combinations, minus one exclude, plus one include: expect 4 jobs.
+  count:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        version: [16, 18]
+        exclude:
+          - os: windows-latest
+            version: 16
+        include:
+          - os: macos-latest
+            version: 20
+    steps:
+      - name: Print combination
+        shell: bash
+        env:
+          OS: ${{ matrix.os }}
+          VERSION: ${{ matrix.version }}
+        run: echo "combination os=$OS version=$VERSION"
