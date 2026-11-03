@@ -1,0 +1,63 @@
+name: lab05-services
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+env:
+  # Probe a TCP port with bash only (no redis-cli needed): send PING, print the reply.
+  PROBE: |
+    probe() {
+      out=$(timeout 8 bash -c 'exec 3<>/dev/tcp/$0/$1 && printf "PING\r\n" >&3 && read -t 5 -r l <&3 && echo "$l"' "$1" "$2" 2>&1)
+      echo "PROBE $1:$2 rc=$? reply=[$out]"
+    }
+
+jobs:
+  # Job runs directly on the runner; ports are mapped. Also tests services.options with a health check.
+  on-runner-ports:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Probe localhost and the service label
+        run: |
+          eval "$PROBE"
+          probe localhost 6379
+          probe redis 6379
+
+  # Job runs directly on the runner; no ports mapped.
+  on-runner-noports:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7
+    steps:
+      - name: Probe localhost and the service label
+        run: |
+          eval "$PROBE"
+          probe localhost 6379
+          probe redis 6379
+
+  # Job runs in a container; no ports mapped.
+  in-container:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22.04
+    services:
+      redis:
+        image: redis:7
+    steps:
+      - name: Probe localhost and the service label
+        run: |
+          eval "$PROBE"
+          probe localhost 6379
+          probe redis 6379
