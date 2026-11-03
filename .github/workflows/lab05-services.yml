@@ -9,8 +9,9 @@ env:
   # Probe a TCP port with bash only (no redis-cli needed): send PING, print the reply.
   PROBE: |
     probe() {
-      out=$(timeout 8 bash -c 'exec 3<>/dev/tcp/$0/$1 && printf "PING\r\n" >&3 && read -t 5 -r l <&3 && echo "$l"' "$1" "$2" 2>&1)
-      echo "PROBE $1:$2 rc=$? reply=[$out]"
+      rc=0
+      out=$(timeout 8 bash -c 'exec 3<>/dev/tcp/$0/$1 && printf "PING\r\n" >&3 && read -t 5 -r l <&3 && echo "$l"' "$1" "$2" 2>&1) || rc=$?
+      echo "PROBE $1:$2 rc=$rc reply=[$(printf %s "$out" | tr -d '\r')]"
     }
 
 jobs:
@@ -29,6 +30,7 @@ jobs:
           --health-retries 5
     steps:
       - name: Probe localhost and the service label
+        shell: bash
         run: |
           eval "$PROBE"
           probe localhost 6379
@@ -42,6 +44,7 @@ jobs:
         image: redis:7
     steps:
       - name: Probe localhost and the service label
+        shell: bash
         run: |
           eval "$PROBE"
           probe localhost 6379
@@ -57,6 +60,7 @@ jobs:
         image: redis:7
     steps:
       - name: Probe localhost and the service label
+        shell: bash
         run: |
           eval "$PROBE"
           probe localhost 6379
