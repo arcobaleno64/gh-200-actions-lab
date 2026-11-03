@@ -17,7 +17,7 @@
 | 9 | 重新執行與除錯記錄 | D2-O1 | 已跑（2026-11-03） |
 | 10 | 可重用工作流程與複合 action | D2-O3、D3-O1 | 已跑（2026-11-03） |
 | 11 | 三種自訂 action | D3-O1、D3-O2 | 已跑（2026-11-03） |
-| 12 | script injection 與環境變數防範 | D5-O1 | 待寫 |
+| 12 | script injection 與環境變數防範 | D5-O1 | 已跑（2026-11-03） |
 | 13 | `GITHUB_TOKEN` 權限與觸發規則 | D5-O1 | 待寫 |
 | 14 | OIDC：只檢視 claims，不連雲端 | D5-O1 | 待寫 |
 
@@ -169,6 +169,18 @@ b'` 才能傳多行；擷取日誌時要避開 workflow 原始碼裡那行 `echo
 **驗證方式：** 貼上各 job 的 `RESULT11` 行與註解訊息。
 **踩到的坑：** 我的複合 action 探測腳本用 `env | grep '^INPUT_'`，沒有符合時 `pipefail` 讓步驟失敗；那是腳本問題，不是 action 規則，加 `|| true` 後重跑。
 
-## 實驗 12 到 14
+## 實驗 12：script injection 與環境變數防範
+
+**學習站的說法：** `run` 或 `github-script` 的內容中直接寫 `${{ ... }}`，運算式會先被展開成文字再交給 shell 或 JavaScript，惡意輸入可以變成指令；先放進 `env` 再用環境變數取值，值只是資料。附加到 `GITHUB_ENV` 的不受信任文字若含換行，可以多設一個環境變數。
+
+**步驟：**
+1. `.github/workflows/lab12-injection.yml` 已在 `main`，用 `workflow_dispatch` 輸入當成「不受信任的文字」（**只印出一行無害的標記，不做任何有破壞性的事**）。六個步驟：A 在 `run` 內直接寫運算式；B 經 `env`；C 在 `github-script` 的字串內直接寫運算式；D 經 `process.env`；E 把輸入附加到 `GITHUB_ENV`；E2 讀回。
+2. 依序用四組輸入各跑一次：`Mona`（對照）；`x"; echo INJECTED-SHELL; echo "`（打斷 shell 的雙引號）；`x'); core.info('INJECTED-JS`（打斷 JavaScript 的單引號）；含換行的 `first` 與 `LAB12_INJECTED=yes`。
+
+**預期：** A、C 在打斷引號時多執行一段；B、D 永遠只是字串；E 在含換行時多設一個變數。
+**驗證方式：** 貼上每次的 `RESULT12` 行，與日誌中 `Run` 區塊顯示的展開後腳本。
+**踩到的坑：** 我的第一版篩選條件把含 `echo "` 的輸出行也濾掉，看起來像少了結果；要改成逐步驟檢視。
+
+## 實驗 13 到 14
 
 尚未撰寫；規劃見總表。每個實驗寫完前先確認它能解決學習站章節裡哪個「尚未核對」的項目，再動手。

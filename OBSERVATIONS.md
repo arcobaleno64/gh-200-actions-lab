@@ -66,3 +66,10 @@
 | 11 | 複合 action 輸出需要 `value` | `steps.cp.outputs.greeting` | 2026-11-03：`composite-output=[Hello Cat]` | 一致 |
 | 11 | 複合 action 內以 `inputs` context 取輸入 | 取得 | 2026-11-03：`${{ inputs.who-to-greet }}` 為 `Cat`；環境中沒有 `INPUT_*` 變數（`input-env-keys=[]`）；`GITHUB_ACTION_PATH` 有設定，JS action 內沒有 | 確認 |
 | 11 | `pre` 步驟在本機（`./`）action 的行為 | 章內未核對 | 2026-11-03：宣告 `pre: pre.js` 的本機 action 出現警告 `pre execution is not supported for local action from './.github/actions/lab11-js'`，`pre.js` 沒有執行（`main`、`post` 有）。遠端 action 的 `pre` 未測 | 新發現 |
+| 12 | `run` 內直接寫運算式會先展開成腳本文字 | 日誌的 Run 區塊是展開後內容 | 2026-11-03：輸入 `x"; echo INJECTED-SHELL; echo "` 時，Run 區塊顯示 `echo "RESULT12 A greeting=[Hello x"; echo INJECTED-SHELL; echo "]"` | 一致 |
+| 12 | 打斷引號後，注入的指令會被執行 | 多印一行 | 2026-11-03：步驟 A 多輸出獨立一行 `INJECTED-SHELL`（第二個 `echo` 真的執行） | 一致 |
+| 12 | 經 `env` 再用 `$NAME` 取值，內容只是字串 | 不執行 | 2026-11-03：同一輸入下步驟 B 輸出 `RESULT12 B greeting=[Hello x"; echo INJECTED-SHELL; echo "]`，沒有獨立的 `INJECTED-SHELL` 行 | 一致 |
+| 12 | `github-script` 內直接寫運算式同樣可被注入 | 單引號被打斷後執行 | 2026-11-03：輸入 `x'); core.info('INJECTED-JS` 時，步驟 C 的腳本變成 `core.info('...[Hello x'); core.info('INJECTED-JS]')`，輸出獨立一行 `INJECTED-JS]`；用雙引號的 shell 酬載在這個單引號字串內沒有效果（只是字串） | 一致（酬載要配合引號種類） |
+| 12 | 經 `process.env` 取值只是字串 | 不執行 | 2026-11-03：步驟 D 輸出 `RESULT12 D greeting=[Hello x'); core.info('INJECTED-JS]`，沒有獨立行 | 一致 |
+| 12 | 含換行的不受信任文字附加到 `GITHUB_ENV` 會多設變數 | `LAB12_INJECTED` 被設定 | 2026-11-03：輸入 `first` 換行 `LAB12_INJECTED=yes`，E2 輸出 `note=[first] injected-var=[yes]`；日誌也列出新增的 `LAB12_INJECTED: yes`。單行輸入時 `injected-var=[unset]` | 一致 |
+| 12 | 同一個 `env` 方式在 shell 與 JavaScript 兩邊都能避免注入 | B、D 都安全 | 2026-11-03：四組輸入下 B、D 皆只輸出字串 | 一致 |
