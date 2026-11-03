@@ -1,0 +1,58 @@
+name: lab07-cache
+
+on:
+  workflow_dispatch:
+    inputs:
+      key:
+        description: Cache key to restore
+        required: true
+        default: lab07-none
+      restore_keys:
+        description: restore-keys, one per line
+        required: false
+        default: ""
+      save_key:
+        description: If set, save a cache under this key after reporting
+        required: false
+        default: ""
+      payload:
+        description: Text stored in the cache when save_key is set
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restore
+        id: restore
+        uses: actions/cache/restore@v4
+        with:
+          path: lab07-cache
+          key: ${{ inputs.key }}
+          restore-keys: ${{ inputs.restore_keys }}
+      - name: Report
+        env:
+          HIT: ${{ steps.restore.outputs.cache-hit }}
+          MATCHED: ${{ steps.restore.outputs.cache-matched-key }}
+          REF: ${{ github.ref }}
+        run: |
+          content=none
+          if [ -f lab07-cache/payload.txt ]; then content=$(cat lab07-cache/payload.txt); fi
+          echo "RESULT ref=[$REF] cache-hit=[$HIT] matched=[$MATCHED] content=[$content]"
+      - name: Write payload
+        if: inputs.save_key != ''
+        env:
+          PAYLOAD: ${{ inputs.payload }}
+        run: |
+          mkdir -p lab07-cache
+          printf '%s' "$PAYLOAD" > lab07-cache/payload.txt
+      - name: Save
+        if: inputs.save_key != ''
+        uses: actions/cache/save@v4
+        with:
+          path: lab07-cache
+          key: ${{ inputs.save_key }}
