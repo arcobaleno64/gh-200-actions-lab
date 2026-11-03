@@ -46,7 +46,11 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           code() { curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" "$@"; }
-          echo "RESULT13 empty-permissions contents-read=[$(code "https://api.github.com/repos/$REPO/contents/README.md")] issues-read=[$(code "https://api.github.com/repos/$REPO/issues?per_page=1")] actions-read=[$(code "https://api.github.com/repos/$REPO/actions/runs?per_page=1")]"
+          name="lab13-probe-$GITHUB_RUN_ID-$RANDOM"
+          w=$(code -X POST -d "{\"name\":\"$name\",\"color\":\"ededed\"}" "https://api.github.com/repos/$REPO/labels")
+          if [ "$w" = "201" ]; then code -X DELETE "https://api.github.com/repos/$REPO/labels/$name" >/dev/null; fi
+          unauth=$(curl -s -o /dev/null -w '%{http_code}' "https://api.github.com/repos/$REPO/contents/README.md")
+          echo "RESULT13 empty-permissions contents-read=[$(code "https://api.github.com/repos/$REPO/contents/README.md")] unauthenticated-contents-read=[$unauth] issues-write(create-label)=[$w]"
 
   write-all:
     runs-on: ubuntu-latest
