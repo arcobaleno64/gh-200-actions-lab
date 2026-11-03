@@ -6,7 +6,7 @@
 
 | # | 實驗 | 對應目標 | 狀態 |
 | - | ---- | -------- | ---- |
-| 1 | 功能分支的 `schedule` 與 `workflow_dispatch` | D1-O1 | 已跑（2026-11-03）；排程是否啟動未觀察到 |
+| 1 | 功能分支的 `schedule` 與 `workflow_dispatch` | D1-O1 | 已跑兩次（2026-11-03）；兩次都沒有觀察到排程執行 |
 | 2 | 各事件的 `GITHUB_SHA` 與 `GITHUB_REF` | D1-O1 | 已跑（2026-11-03） |
 | 3 | boolean input：`inputs` 與 `github.event.inputs` | D1-O1 | 已跑（2026-11-03） |
 | 4 | 矩陣的 `include`、`exclude`、`fail-fast` | D1-O2 | 已跑（2026-11-03） |
