@@ -23,15 +23,15 @@ jobs:
         run: echo "outcome=$OUTCOME conclusion=$CONCLUSION"
       - name: if outcome == failure
         if: steps.lint.outcome == 'failure'
-        run: echo "ran: outcome is failure"
+        run: echo ran-outcome-is-failure
       - name: if conclusion == failure
         if: steps.lint.conclusion == 'failure'
-        run: echo "ran: conclusion is failure"
+        run: echo ran-conclusion-is-failure
       - name: if conclusion == success
         if: steps.lint.conclusion == 'success'
-        run: echo "ran: conclusion is success"
+        run: echo ran-conclusion-is-success
       - name: if env.HAS_TOKEN == 'true' (secret unset)
         if: env.HAS_TOKEN == 'true'
-        run: echo "ran: token present"
+        run: echo ran-token-present
       - name: print HAS_TOKEN
         run: echo "HAS_TOKEN=[$HAS_TOKEN]"
